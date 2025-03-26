@@ -10,6 +10,71 @@ A modular system for managing and validating student course registrations agains
 - **Prerequisite Validation**: Validate course registrations against prerequisites
 - **Detailed Reports**: Generate comprehensive validation reports
 
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8 or higher
+- PyPDF2 library
+
+### Installation and Usage (Windows)
+
+1. **Clone the repository**:
+   - Install Git from [git-scm.com](https://git-scm.com/download/win) if needed
+   - Open Command Prompt and run:
+   ```
+   git clone https://github.com/Modern-research-group/course-registration-validator.git
+   cd course-registration-validator
+   ```
+
+2. **Install the required dependency**:
+   ```
+   pip install PyPDF2
+   ```
+
+3. **Run the application**:
+   ```
+   python integrated_solution.py
+   ```
+
+### Installation and Usage (Mac/Linux)
+
+1. **Clone the repository**:
+   ```
+   git clone https://github.com/Modern-research-group/course-registration-validator.git
+   cd course-registration-validator
+   ```
+
+2. **Install the required dependency**:
+   ```
+   pip3 install PyPDF2
+   ```
+
+3. **Run the application**:
+   ```
+   python3 integrated_solution.py
+   ```
+
+### Using the Application
+
+Once the application is running, you can:
+- **Launch Transcript Editor**: Create or edit transcript data
+- **Validate Transcript (JSON)**: Validate a saved transcript against prerequisites
+- **Manage Course Data**: Select or add course data files
+- **View Reports**: See validation results
+
+### First-time Usage
+
+1. Start the application with `python integrated_solution.py`
+2. Select "Launch Transcript Editor"
+3. Use the editor to create a new transcript:
+   - Enter student information
+   - Add semesters
+   - Add courses to each semester
+4. Save your transcript
+5. Return to the launcher and select "Validate Transcript"
+6. Select your saved transcript to check for prerequisite issues
+
 ## Directory Structure
 
 ```
@@ -37,25 +102,6 @@ A modular system for managing and validating student course registrations agains
 ├── transcript_editor_app.py  # Transcript editor entry point
 └── validator.py          # Core validation logic
 ```
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Required packages: `tkinter`, `PyPDF2`
-
-### Setup
-
-1. Clone or download this repository to your local machine
-2. Install required packages:
-   ```bash
-   pip install PyPDF2
-   ```
-3. Run the integrated launcher:
-   ```bash
-   python integrated_solution.py
-   ```
 
 ## Usage
 
