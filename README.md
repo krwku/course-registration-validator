@@ -12,12 +12,45 @@ A modular system for managing and validating student course registrations agains
 
 ## Quick Start
 
-### Prerequisites
+### Easy Installation (Recommended)
+
+Install directly from GitHub using pip:
+```
+pip install git+https://github.com/Modern-research-group/course-registration-validator.git
+```
+
+After installation, you can run the application from any directory with:
+```
+course-validator
+```
+
+### Installation Troubleshooting
+
+If you encounter any issues:
+
+1. Try uninstalling and reinstalling:
+```
+pip uninstall -y course-registration-validator
+pip install git+https://github.com/Modern-research-group/course-registration-validator.git
+```
+
+2. If using Windows and getting permission errors, run Command Prompt as Administrator.
+
+3. For Mac/Linux users, you might need to use `pip3` instead of `pip`:
+```
+pip3 install git+https://github.com/Modern-research-group/course-registration-validator.git
+```
+
+### Manual Installation (Alternative)
+
+If you prefer to run from source:
+
+#### Prerequisites
 
 - Python 3.8 or higher
 - PyPDF2 library
 
-### Installation and Usage (Windows)
+#### Installation Steps (Windows)
 
 1. **Clone the repository**:
    - Install Git from [git-scm.com](https://git-scm.com/download/win) if needed
@@ -27,9 +60,9 @@ A modular system for managing and validating student course registrations agains
    cd course-registration-validator
    ```
 
-2. **Install the required dependency**:
+2. **Install the required dependencies**:
    ```
-   pip install PyPDF2
+   pip install -r requirements.txt
    ```
 
 3. **Run the application**:
@@ -37,7 +70,7 @@ A modular system for managing and validating student course registrations agains
    python integrated_solution.py
    ```
 
-### Installation and Usage (Mac/Linux)
+#### Installation Steps (Mac/Linux)
 
 1. **Clone the repository**:
    ```
@@ -45,9 +78,9 @@ A modular system for managing and validating student course registrations agains
    cd course-registration-validator
    ```
 
-2. **Install the required dependency**:
+2. **Install the required dependencies**:
    ```
-   pip3 install PyPDF2
+   pip3 install -r requirements.txt
    ```
 
 3. **Run the application**:
@@ -55,7 +88,7 @@ A modular system for managing and validating student course registrations agains
    python3 integrated_solution.py
    ```
 
-### Using the Application
+## Using the Application
 
 Once the application is running, you can:
 - **Launch Transcript Editor**: Create or edit transcript data
@@ -65,7 +98,7 @@ Once the application is running, you can:
 
 ### First-time Usage
 
-1. Start the application with `python integrated_solution.py`
+1. Start the application with `course-validator` or `python integrated_solution.py`
 2. Select "Launch Transcript Editor"
 3. Use the editor to create a new transcript:
    - Enter student information
@@ -191,6 +224,7 @@ To add new features:
 - **PDF Extraction Issues**: The PDF extraction is best-effort and may require significant manual correction
 - **Missing Course Data**: Ensure course data files are in the `course_data` directory
 - **Validation Errors**: Check the logs for detailed error information
+- **Installation Problems**: See the Installation Troubleshooting section above
 
 ## Contributing
 
