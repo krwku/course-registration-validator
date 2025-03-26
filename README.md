@@ -167,7 +167,7 @@ The Student Information panel allows you to enter basic student details:
 | Field | Description | Example |
 |-------|-------------|---------|
 | Student ID | University ID number | 6010500045 |
-| Name | Student's full name | John Smith |
+| Name | Student's full name | Mr. Maximus Regisstar |
 | Field of Study | Major or program | Industrial Engineering |
 | Date of Admission | When student enrolled | Sep 01, 2020 |
 
@@ -326,7 +326,7 @@ Generated: 2023-03-26 15:42:23
 STUDENT INFORMATION
 --------------------------------------------------------------------------------
 Student ID:       6010500045
-Name:             John Smith
+Name:             Mr. Maximus Regisstar
 Field of Study:   Industrial Engineering
 Date of Admission: September 1, 2020
 Current GPA:      3.45
@@ -446,7 +446,7 @@ The system looks for specific patterns in the text:
 | Element | Pattern Example | Notes |
 |---------|-----------------|-------|
 | Student ID | Student No 6010500045 | Must include "Student No" prefix |
-| Name | Name John Smith | Must include "Name" prefix |
+| Name | Name Mr. Maximus Regisstar | Must include "Name" prefix |
 | Field of Study | Field of Study Industrial Engineering | Must include "Field of Study" prefix |
 | Date | Date of Admission September 1, 2020 | Must include "Date of Admission" prefix |
 | Semester | First Semester 2020 | Can be "First", "Second" or "Summer" |
