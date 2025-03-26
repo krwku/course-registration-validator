@@ -5,6 +5,8 @@ Application configuration and path management.
 import os
 from pathlib import Path
 import logging
+import appdirs
+import pkg_resources
 
 logger = logging.getLogger("config")
 
@@ -12,11 +14,31 @@ class Config:
     """Application configuration and paths."""
     
     def __init__(self):
-        # Base directories
-        self.app_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent
-        self.course_data_dir = self.app_dir / "course_data"
-        self.reports_dir = self.app_dir / "reports"
-        self.logs_dir = self.app_dir / "logs"
+        # Determine if running from installed package or local directory
+        try:
+            # Try to get the installed package location
+            self.app_dir = Path(pkg_resources.resource_filename(__name__, '')).parent.parent
+            logger.info(f"Using installed package at: {self.app_dir}")
+            
+            # Use appdirs for proper locations in user directory
+            app_name = "course-registration-validator"
+            app_author = "modern-research-group"
+            
+            user_data_dir = Path(appdirs.user_data_dir(app_name, app_author))
+            user_data_dir.mkdir(exist_ok=True, parents=True)
+            
+            self.course_data_dir = user_data_dir / "course_data"
+            self.reports_dir = user_data_dir / "reports"
+            self.logs_dir = user_data_dir / "logs"
+            
+        except (ImportError, pkg_resources.DistributionNotFound):
+            # Fall back to local directory if not installed as package
+            self.app_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent
+            logger.info(f"Using local directory: {self.app_dir}")
+            
+            self.course_data_dir = self.app_dir / "course_data"
+            self.reports_dir = self.app_dir / "reports"
+            self.logs_dir = self.app_dir / "logs"
         
         # Ensure directories exist
         self.course_data_dir.mkdir(exist_ok=True)
