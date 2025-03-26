@@ -11,20 +11,32 @@ from tkinter import ttk, messagebox, filedialog
 import json
 import logging
 from pathlib import Path
+import importlib.resources
+import importlib.util
+import pkg_resources
 
-# Ensure the root directory is in the path for imports
-root_dir = Path(__file__).parent
-sys.path.append(str(root_dir))
-
-# Import utilities
+# Set up logging
 from utils.logger_setup import setup_logging
+setup_logging()
+logger = logging.getLogger("integrated_solution")
+
+# Find the package root directory
+try:
+    # First try to get the installed package location
+    package_root = Path(pkg_resources.resource_filename(__name__, ''))
+    logger.info(f"Using installed package at: {package_root}")
+except (ImportError, pkg_resources.DistributionNotFound):
+    # Fall back to the current directory if not installed as package
+    package_root = Path(__file__).parent
+    logger.info(f"Using local directory: {package_root}")
+
+# Add package root to path for imports
+sys.path.append(str(package_root))
+
+# Import utilities now that path is set up
 from utils.config import config
 from utils.validation_adapter import ValidationAdapter
 from ui.dialogs import CourseDataSelectorDialog
-
-# Set up logging
-setup_logging()
-logger = logging.getLogger("integrated_solution")
 
 class LauncherApp(tk.Tk):
     """Launcher application for the Course Registration Validation System."""
@@ -39,14 +51,15 @@ class LauncherApp(tk.Tk):
     
     def setup_paths(self):
         """Set up paths to required files and check their existence."""
-        self.transcript_editor_path = "transcript_editor_app.py"
-        self.validator_path = "validator.py"
+        # Use package paths instead of relative paths
+        self.transcript_editor_path = package_root / "transcript_editor_app.py"
+        self.validator_path = package_root / "validator.py"
         
         # Check if required files exist
         missing_files = []
         for path in [self.transcript_editor_path, self.validator_path]:
-            if not os.path.exists(path):
-                missing_files.append(path)
+            if not path.exists():
+                missing_files.append(str(path.name))
         
         if missing_files:
             logger.warning(f"Missing required files: {missing_files}")
@@ -54,8 +67,8 @@ class LauncherApp(tk.Tk):
         else:
             self.missing_files = []
         
-        # Initialize validation adapter
-        self.validation_adapter = ValidationAdapter(self.validator_path)
+        # Initialize validation adapter with absolute path
+        self.validation_adapter = ValidationAdapter(str(self.validator_path))
     
     def create_widgets(self):
         """Create the GUI widgets."""
@@ -128,14 +141,14 @@ class LauncherApp(tk.Tk):
     
     def launch_transcript_editor(self):
         """Launch the transcript editor application."""
-        if "transcript_editor_app.py" in self.missing_files:
+        if not self.transcript_editor_path.exists():
             messagebox.showerror("Error", "Transcript Editor is missing. "
                                "Please ensure transcript_editor_app.py is available.")
             return
         
         try:
             self.status_var.set("Launching Transcript Editor...")
-            subprocess.Popen([sys.executable, self.transcript_editor_path])
+            subprocess.Popen([sys.executable, str(self.transcript_editor_path)])
             self.status_var.set("Transcript Editor launched")
         except Exception as e:
             logger.error(f"Error launching Transcript Editor: {e}")
@@ -144,7 +157,7 @@ class LauncherApp(tk.Tk):
     
     def validate_transcript(self):
         """Validate a JSON transcript file using the validation adapter."""
-        if "validator.py" in self.missing_files:
+        if not self.validator_path.exists():
             messagebox.showerror("Error", "Validator is missing. "
                                "Please ensure validator.py is available.")
             return
