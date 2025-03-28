@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="course-registration-validator",
     version="0.1.0",
-    py_modules=["integrated_solution", "app", "validator", "transcript_editor_app"],
+    py_modules=["integrated_solution", "app", "validator", "transcript_editor_app", "batch_processor"],
     packages=find_packages(),
     package_data={
         "": ["*.json"],
