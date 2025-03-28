@@ -102,7 +102,7 @@ class PDFExtractor:
         """
         # Regular expressions to find semester headers and course data
         semester_pattern = r'(First|Second) Semester (\d{4})|Summer Session (\d{4})|(First|Second|Summer) (\d{4})'
-        course_pattern = r'(\d{8})([\w &\'\-\+\.\,\/\(\)]+?)([A-Z\+\-]+|\s+[A-Z\+\-]+)?\s+(\d+)'
+        course_pattern = r'(\d{8})\s+([\w &\'\-\+\.\,\/\(\)]+?)([A-Z\+\-]+|\s+[A-Z\+\-]+)?\s+(\d+)'
         gpa_pattern = r'sem\. G\.P\.A\. = (\d+\.\d+)\s+cum\. G\.P\.A\. = (\d+\.\d+)'
         
         # Find all semesters
@@ -111,6 +111,10 @@ class PDFExtractor:
         
         lines = text.split('\n')
         for line in lines:
+            # Skip lines that appear to be URLs or footers
+            if "http" in line or ".php" in line or ".html" in line:
+                continue
+                
             # Check for semester header
             semester_match = re.search(semester_pattern, line)
             if semester_match:
