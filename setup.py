@@ -16,6 +16,7 @@ setup(
     entry_points={
         'console_scripts': [
             'course-validator=integrated_solution:main',
+            'course-validator-batch=batch_processor:main',
         ],
     },
     python_requires='>=3.8',
