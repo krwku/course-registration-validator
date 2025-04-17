@@ -9,6 +9,7 @@ from tkinter import ttk, filedialog, messagebox
 import logging
 from pathlib import Path
 import tempfile
+import subprocess
 
 # Import utilities
 from utils.logger_setup import setup_logging
@@ -95,6 +96,9 @@ class TranscriptEditorApp(tk.Tk):
         else:
             # Course data is available, load it
             self.load_course_data()
+        
+        # Update the course data display
+        self.update_course_data_display()
     
     def load_course_data(self):
         """Load course data from the default file."""
@@ -111,6 +115,13 @@ class TranscriptEditorApp(tk.Tk):
                 "No course data file found. Some features will be limited. "
                 "Use 'File > Select Course Data' to choose a course data file."
             )
+    
+    def update_course_data_display(self):
+        """Update the display of current course data file."""
+        if config.current_course_data and config.current_course_data.exists():
+            self.course_data_var.set(f"Current Course Data: {config.current_course_data.name}")
+        else:
+            self.course_data_var.set("No course data file selected")
     
     def create_menu(self):
         """Create the application menu bar."""
@@ -154,6 +165,14 @@ class TranscriptEditorApp(tk.Tk):
         main_container.add(right_panel, weight=2)
         
         # ===== LEFT PANEL =====
+        # Quick action buttons
+        quick_buttons_frame = ttk.Frame(left_panel)
+        quick_buttons_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Button(quick_buttons_frame, text="Read PDF", command=self.try_extract_pdf).pack(side=tk.LEFT, padx=2)
+        ttk.Button(quick_buttons_frame, text="Save JSON", command=self.save_data).pack(side=tk.LEFT, padx=2)
+        ttk.Button(quick_buttons_frame, text="Validate", command=self.quick_validate).pack(side=tk.LEFT, padx=2)
+        
         # Student Information Section
         self.student_panel = self.student_manager.create_panel(left_panel)
         self.student_panel.pack(fill=tk.X, expand=False, pady=(0, 10))
@@ -164,6 +183,14 @@ class TranscriptEditorApp(tk.Tk):
         self.semester_panel.pack(fill=tk.BOTH, expand=True)
         
         # ===== RIGHT PANEL =====
+        # Display for currently selected course data file at the top-right
+        course_data_frame = ttk.Frame(right_panel)
+        course_data_frame.pack(fill=tk.X, pady=(0, 5), anchor=tk.E)
+        
+        self.course_data_var = tk.StringVar(value="No course data file selected")
+        course_data_label = ttk.Label(course_data_frame, textvariable=self.course_data_var, font=("Arial", 10, "italic"))
+        course_data_label.pack(side=tk.RIGHT)
+        
         # Current Semester Section
         self.semester_details_panel = SemesterDetailsPanel(
             right_panel, self.semester_manager, self.course_manager, callback=self.on_semester_details_change)
@@ -376,6 +403,43 @@ class TranscriptEditorApp(tk.Tk):
         # If we have a course data file, proceed with validation
         self.perform_validation()
     
+    def quick_validate(self):
+        """Perform a quick validation with the current course data and open the report."""
+        # Check if we have a course data file
+        if not config.current_course_data or not config.current_course_data.exists():
+            messagebox.showwarning(
+                "Course Data Required",
+                "A course data file is required for validation. Please select one."
+            )
+            CourseDataSelectorDialog(self, self.on_course_data_selected_for_quick_validation)
+            return
+        
+        # Proceed with validation and auto-open report
+        self.perform_validation(auto_open_report=True)
+    
+    def on_course_data_selected_for_quick_validation(self, file_path):
+        """
+        Handle course data selection for quick validation.
+        
+        Args:
+            file_path: Selected course data file path
+        """
+        if not file_path:
+            self.report_status("Validation cancelled - no course data selected")
+            return
+        
+        # Set the current course data file
+        config.set_current_course_data(file_path)
+        
+        # Update the course data display
+        self.update_course_data_display()
+        
+        # Reload course data
+        self.load_course_data()
+        
+        # Perform validation with auto-open
+        self.perform_validation(auto_open_report=True)
+    
     def on_course_data_selected_for_validation(self, file_path):
         """
         Handle course data selection for validation.
@@ -390,14 +454,22 @@ class TranscriptEditorApp(tk.Tk):
         # Set the current course data file
         config.set_current_course_data(file_path)
         
+        # Update the course data display
+        self.update_course_data_display()
+        
         # Reload course data
         self.load_course_data()
         
         # Perform validation
         self.perform_validation()
     
-    def perform_validation(self):
-        """Perform validation using the current course data."""
+    def perform_validation(self, auto_open_report=False):
+        """
+        Perform validation using the current course data.
+        
+        Args:
+            auto_open_report: Whether to automatically open the report
+        """
         # Make sure validator is initialized
         if not self.validation_adapter.initialize_validator(str(config.current_course_data)):
             messagebox.showerror("Error", "Failed to initialize validator")
@@ -424,12 +496,33 @@ class TranscriptEditorApp(tk.Tk):
             validation_results
         )
         
-        # Show report dialog
-        ValidationReportDialog(self, report, validation_results)
+        # Get student ID for report filename
+        student_id = self.model.student_info.get("id", "unknown")
+        
+        # Save the report
+        report_path = config.reports_dir / f"validation_report_{student_id}.txt"
+        with open(report_path, 'w', encoding='utf-8') as file:
+            file.write(report)
         
         # Count invalid results
         invalid_count = len([r for r in validation_results if not r.get("is_valid", True)])
         self.report_status(f"Validation complete - {invalid_count} issues found")
+        
+        if auto_open_report:
+            # Automatically open the report
+            try:
+                if sys.platform == 'win32':
+                    os.startfile(report_path)
+                elif sys.platform == 'darwin':  # macOS
+                    subprocess.call(['open', str(report_path)])
+                else:  # Linux
+                    subprocess.call(['xdg-open', str(report_path)])
+            except Exception as e:
+                logger.error(f"Failed to open report: {e}")
+                messagebox.showwarning("Warning", f"Could not automatically open report: {e}")
+        else:
+            # Show report dialog
+            ValidationReportDialog(self, report, validation_results)
     
     def select_course_data(self):
         """Select a course data file."""
@@ -459,6 +552,9 @@ class TranscriptEditorApp(tk.Tk):
         
         # Set the current course data file
         config.set_current_course_data(file_path)
+        
+        # Update the course data display
+        self.update_course_data_display()
         
         # Reload course data
         self.load_course_data()
