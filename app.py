@@ -52,8 +52,14 @@ class TranscriptEditorApp(tk.Tk):
         self.course_manager = CourseManager(self.model)
         self.pdf_extractor = PDFExtractor()
         
-        # Create validation adapter
-        self.validation_adapter = ValidationAdapter()
+        # Find validator path and create validation adapter
+        validator_path = self.find_validator_path()
+        if validator_path:
+            logger.info(f"Using validator path: {validator_path}")
+            self.validation_adapter = ValidationAdapter(str(validator_path))
+        else:
+            logger.warning("Using default validator path - may not work correctly")
+            self.validation_adapter = ValidationAdapter()
         
         # Set up the UI
         self.create_menu()
@@ -80,6 +86,53 @@ class TranscriptEditorApp(tk.Tk):
         
         # Schedule checking for course data after the UI is shown
         self.after(100, self.check_course_data)
+    
+    def find_validator_path(self):
+        """Find the path to validator.py"""
+        # Get the package root directory
+        try:
+            import pkg_resources
+            package_root = Path(pkg_resources.resource_filename(__name__, ''))
+            logger.info(f"Using package root: {package_root}")
+        except (ImportError, pkg_resources.DistributionNotFound):
+            package_root = Path(os.path.dirname(os.path.abspath(__file__)))
+            logger.info(f"Using local directory as root: {package_root}")
+
+        # Attempt to find validator.py in several possible locations
+        potential_paths = [
+            package_root / "validator.py",                   # Same directory
+            package_root.parent / "validator.py",            # Parent directory
+            package_root.parent.parent / "validator.py",     # Grandparent directory
+            Path(sys.executable).parent / "validator.py",    # Python executable directory
+        ]
+        
+        # Also search in site-packages directories
+        site_packages = [Path(p) for p in sys.path if 'site-packages' in str(p)]
+        for site_dir in site_packages:
+            potential_paths.append(site_dir / "validator.py")
+            potential_paths.append(site_dir / "course-registration-validator" / "validator.py")
+            potential_paths.append(site_dir / "course_registration_validator" / "validator.py")
+        
+        # Try to find the validator file
+        for path in potential_paths:
+            if path.exists():
+                logger.info(f"Found validator.py at: {path}")
+                return path
+                
+        # If not found through paths, try to find it as a module
+        for module_name in ["validator", "course-registration-validator.validator", "course_registration_validator.validator"]:
+            try:
+                spec = importlib.util.find_spec(module_name)
+                if spec and spec.origin:
+                    path = Path(spec.origin)
+                    if path.exists():
+                        logger.info(f"Found validator module at: {path}")
+                        return path
+            except (ImportError, ValueError, AttributeError):
+                pass
+                
+        logger.warning("validator.py not found in standard locations")
+        return None
     
     def check_course_data(self):
         """Check if course data is available and prompt to select if not."""
