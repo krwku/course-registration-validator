@@ -20,6 +20,9 @@ import pkg_resources
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("batch_processor")
 
+# Set default value for validator_path
+validator_path = None
+
 # Find the package root directory and validator file
 try:
     # First try to get the installed package location
@@ -27,7 +30,6 @@ try:
     logger.info(f"Using installed package at: {package_root}")
     
     # Attempt to find validator.py in several possible locations
-    validator_path = None
     potential_paths = [
         package_root / "validator.py",                   # Same directory
         package_root.parent / "validator.py",            # Parent directory
