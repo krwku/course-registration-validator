@@ -20,39 +20,12 @@ import pkg_resources
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("batch_processor")
 
-# Set default value for validator_path
-validator_path = None
-
-# Find the package root directory and validator file
+# Find useful paths
 try:
     # First try to get the installed package location
     package_root = Path(pkg_resources.resource_filename(__name__, ''))
     logger.info(f"Using installed package at: {package_root}")
     
-    # Attempt to find validator.py in several possible locations
-    potential_paths = [
-        package_root / "validator.py",                   # Same directory
-        package_root.parent / "validator.py",            # Parent directory
-        package_root.parent.parent / "validator.py",     # Grandparent directory
-        Path(sys.executable).parent / "validator.py",    # Python executable directory
-    ]
-    
-    # Also search in site-packages directories
-    site_packages = [Path(p) for p in sys.path if 'site-packages' in str(p)]
-    for site_dir in site_packages:
-        potential_paths.append(site_dir / "validator.py")
-        potential_paths.append(site_dir / "course-registration-validator" / "validator.py")
-    
-    # Try to find the validator file
-    for path in potential_paths:
-        if path.exists():
-            validator_path = path
-            logger.info(f"Found validator.py at: {validator_path}")
-            break
-            
-    if not validator_path:
-        logger.warning("validator.py not found in standard locations")
-        
     # Use appdirs for proper locations in user directory
     import appdirs
     app_name = "course-registration-validator"
@@ -65,7 +38,6 @@ except (ImportError, pkg_resources.DistributionNotFound):
     # Fall back to the current directory if not installed as package
     package_root = Path(os.path.dirname(os.path.abspath(__file__)))
     logger.info(f"Using local directory: {package_root}")
-    validator_path = package_root / "validator.py"
 
 # Add package root to path for imports
 sys.path.append(str(package_root))
@@ -82,7 +54,7 @@ for potential_path in [
         sys.path.append(str(potential_path))
         logger.info(f"Added potential path: {potential_path}")
 
-# Import utilities now that path is set up
+# Now try to import
 from utils.logger_setup import setup_logging
 from utils.config import config
 from utils.validation_adapter import ValidationAdapter
@@ -105,21 +77,10 @@ class BatchProcessorApp(tk.Tk):
         # Initialize components
         self.pdf_extractor = PDFExtractor()
         
-        # Pass the validator path found earlier or try to find it now
-        if not validator_path and package_root:
-            # Search for validator.py in common locations
-            for module_name in ["validator", "course-registration-validator.validator"]:
-                try:
-                    spec = importlib.util.find_spec(module_name)
-                    if spec and spec.origin:
-                        validator_path = Path(spec.origin)
-                        logger.info(f"Found validator module at: {validator_path}")
-                        break
-                except (ImportError, ValueError, AttributeError):
-                    pass
-        
-        # If we found a validator path, use it
-        if validator_path and validator_path.exists():
+        # Initialize the validation adapter
+        # Try to find validator.py in several possible locations
+        validator_path = self.find_validator_path()
+        if validator_path:
             logger.info(f"Using validator path: {validator_path}")
             self.validation_adapter = ValidationAdapter(str(validator_path))
         else:
@@ -153,6 +114,43 @@ class BatchProcessorApp(tk.Tk):
         dedication_label.pack(side=tk.RIGHT, padx=10)
         
         logger.info("Batch Processor initialized")
+    
+    def find_validator_path(self):
+        """Find the path to validator.py"""
+        # Attempt to find validator.py in several possible locations
+        potential_paths = [
+            package_root / "validator.py",                   # Same directory
+            package_root.parent / "validator.py",            # Parent directory
+            package_root.parent.parent / "validator.py",     # Grandparent directory
+            Path(sys.executable).parent / "validator.py",    # Python executable directory
+        ]
+        
+        # Also search in site-packages directories
+        site_packages = [Path(p) for p in sys.path if 'site-packages' in str(p)]
+        for site_dir in site_packages:
+            potential_paths.append(site_dir / "validator.py")
+            potential_paths.append(site_dir / "course-registration-validator" / "validator.py")
+        
+        # Try to find the validator file
+        for path in potential_paths:
+            if path.exists():
+                logger.info(f"Found validator.py at: {path}")
+                return path
+                
+        # If not found through paths, try to find it as a module
+        for module_name in ["validator", "course-registration-validator.validator"]:
+            try:
+                spec = importlib.util.find_spec(module_name)
+                if spec and spec.origin:
+                    path = Path(spec.origin)
+                    if path.exists():
+                        logger.info(f"Found validator module at: {path}")
+                        return path
+            except (ImportError, ValueError, AttributeError):
+                pass
+                
+        logger.warning("validator.py not found in standard locations")
+        return None
     
     def create_widgets(self):
         """Create the GUI widgets."""
