@@ -12,18 +12,43 @@ import threading
 import queue
 from pathlib import Path
 import time
+import importlib.resources
+import importlib.util
+import pkg_resources
 
-# Configure paths for importing modules
-script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(str(script_dir))
+# Set up logging first with basic configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("batch_processor")
 
-# Import utilities
+# Find the package root directory
+try:
+    # First try to get the installed package location
+    package_root = Path(pkg_resources.resource_filename(__name__, ''))
+    logger.info(f"Using installed package at: {package_root}")
+    
+    # Use appdirs for proper locations in user directory
+    import appdirs
+    app_name = "course-registration-validator"
+    app_author = "modern-research-group"
+    
+    user_data_dir = Path(appdirs.user_data_dir(app_name, app_author))
+    user_data_dir.mkdir(exist_ok=True, parents=True)
+    
+except (ImportError, pkg_resources.DistributionNotFound):
+    # Fall back to the current directory if not installed as package
+    package_root = Path(os.path.dirname(os.path.abspath(__file__)))
+    logger.info(f"Using local directory: {package_root}")
+
+# Add package root to path for imports
+sys.path.append(str(package_root))
+
+# Import utilities now that path is set up
 from utils.logger_setup import setup_logging
 from utils.config import config
 from utils.validation_adapter import ValidationAdapter
 from utils.pdf_extractor import PDFExtractor
 
-# Set up logging
+# Reinitialize logging with proper setup
 setup_logging()
 logger = logging.getLogger("batch_processor")
 
