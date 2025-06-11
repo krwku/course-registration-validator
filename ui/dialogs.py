@@ -10,6 +10,52 @@ from utils.config import config
 
 logger = logging.getLogger("dialogs")
 
+class FormatSelectionDialog(tk.Toplevel):
+    """Dialog for selecting report output format."""
+    
+    def __init__(self, parent, callback=None):
+        super().__init__(parent)
+        self.title("Select Report Format")
+        self.geometry("300x150")
+        self.transient(parent)
+        self.grab_set()
+        
+        self.callback = callback
+        
+        # Main frame
+        main_frame = ttk.Frame(self, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title
+        ttk.Label(main_frame, text="Choose report format:", font=("Arial", 10, "bold")).pack(pady=(0, 10))
+        
+        # Format selection
+        self.format_var = tk.StringVar(value="text")
+        ttk.Radiobutton(main_frame, text="Text File (.txt)", variable=self.format_var, value="text").pack(anchor=tk.W, pady=2)
+        ttk.Radiobutton(main_frame, text="Excel File (.xlsx)", variable=self.format_var, value="excel").pack(anchor=tk.W, pady=2)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill=tk.X, pady=(15, 0))
+        ttk.Button(button_frame, text="Cancel", command=self.cancel).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(button_frame, text="OK", command=self.ok).pack(side=tk.RIGHT, padx=5)
+        
+        # Center window
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() // 2) - (150)
+        y = (self.winfo_screenheight() // 2) - (75)
+        self.geometry(f"300x150+{x}+{y}")
+    
+    def ok(self):
+        if self.callback:
+            self.callback(self.format_var.get())
+        self.destroy()
+    
+    def cancel(self):
+        if self.callback:
+            self.callback(None)
+        self.destroy()
+
 class CourseDataSelectorDialog(tk.Toplevel):
     """Dialog for selecting a course data file."""
     
