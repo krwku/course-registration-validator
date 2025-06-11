@@ -118,6 +118,46 @@ def save_validation_report_excel(student_info, semesters, validation_results, fi
         from openpyxl.styles import Font, PatternFill, Alignment
         from datetime import datetime
         
+        def calculate_gpa(courses):
+            """Calculate GPA using weighted average."""
+            grade_points = {
+                "A": 4.0, "B+": 3.5, "B": 3.0, "C+": 2.5, "C": 2.0, 
+                "D+": 1.5, "D": 1.0, "F": 0.0
+            }
+            
+            total_points = 0.0
+            total_credits = 0
+            
+            for course in courses:
+                grade = course.get("grade", "")
+                credits = course.get("credits", 0)
+                
+                # Skip grades that don't contribute to GPA
+                if grade not in grade_points:
+                    continue
+                
+                total_points += grade_points[grade] * credits
+                total_credits += credits
+            
+            return round(total_points / total_credits, 2) if total_credits > 0 else 0.0
+        
+        def calculate_cumulative_gpa(semesters, up_to_index, valid_only=False):
+            """Calculate cumulative GPA up to specified semester."""
+            all_courses = []
+            for i in range(up_to_index + 1):
+                semester_courses = semesters[i].get("courses", [])
+                
+                if valid_only:
+                    # Filter to only valid courses
+                    results_for_semester = [r for r in validation_results 
+                                          if r.get("semester_index") == i and r.get("course_code") != "CREDIT_LIMIT"]
+                    valid_course_codes = {r.get("course_code") for r in results_for_semester if r.get("is_valid", True)}
+                    semester_courses = [c for c in semester_courses if c.get("code") in valid_course_codes]
+                
+                all_courses.extend(semester_courses)
+            
+            return calculate_gpa(all_courses)
+        
         wb = Workbook()
         
         # Remove default sheet and create Summary sheet
@@ -151,26 +191,50 @@ def save_validation_report_excel(student_info, semesters, validation_results, fi
         summary_ws['A13'] = "Invalid Registrations:"
         summary_ws['B13'] = invalid_count
         
-        # Semester Overview
-        summary_ws['A15'] = "SEMESTER OVERVIEW"
+        # Semester Details with GPA calculations
+        summary_ws['A15'] = "SEMESTER DETAILS"
         summary_ws['A15'].font = Font(bold=True)
         
-        sem_headers = ["Semester", "Credits", "Sem GPA", "Cum GPA", "Issues"]
-        for col, header in enumerate(sem_headers, 1):
-            cell = summary_ws.cell(row=16, column=col)
-            cell.value = header
-            cell.font = Font(bold=True)
-            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        current_row = 17
         
-        for row, semester in enumerate(semesters, 17):
-            semester_issues = len([r for r in validation_results 
-                                 if r.get("semester") == semester.get("semester") and not r.get("is_valid", True)])
+        for i, semester in enumerate(semesters):
+            # Semester header
+            semester_name = semester.get("semester", f"Semester {i+1}")
+            summary_ws.cell(row=current_row, column=1, value=semester_name).font = Font(bold=True)
+            current_row += 1
             
-            summary_ws.cell(row=row, column=1, value=semester.get("semester", ""))
-            summary_ws.cell(row=row, column=2, value=semester.get("total_credits", 0))
-            summary_ws.cell(row=row, column=3, value=semester.get("sem_gpa", ""))
-            summary_ws.cell(row=row, column=4, value=semester.get("cum_gpa", ""))
-            summary_ws.cell(row=row, column=5, value=semester_issues)
+            # Total credits
+            total_credits = semester.get("total_credits", 0)
+            summary_ws.cell(row=current_row, column=1, value=f"Total Credits: {total_credits}")
+            current_row += 1
+            
+            # Calculate GPAs
+            semester_courses = semester.get("courses", [])
+            overall_sem_gpa = calculate_gpa(semester_courses)
+            overall_cum_gpa = calculate_cumulative_gpa(semesters, i)
+            
+            # Overall GPA row
+            summary_ws.cell(row=current_row, column=1, value=f"Overall - Semester GPA: {overall_sem_gpa}, Cumulative GPA: {overall_cum_gpa}")
+            current_row += 1
+            
+            # Check if this semester has invalid courses
+            semester_invalid_courses = [r for r in validation_results 
+                                      if r.get("semester_index") == i and not r.get("is_valid", True) and r.get("course_code") != "CREDIT_LIMIT"]
+            
+            if semester_invalid_courses:
+                # Calculate valid-only GPAs
+                valid_results = [r for r in validation_results 
+                               if r.get("semester_index") == i and r.get("course_code") != "CREDIT_LIMIT"]
+                valid_course_codes = {r.get("course_code") for r in valid_results if r.get("is_valid", True)}
+                valid_courses = [c for c in semester_courses if c.get("code") in valid_course_codes]
+                
+                valid_sem_gpa = calculate_gpa(valid_courses)
+                valid_cum_gpa = calculate_cumulative_gpa(semesters, i, valid_only=True)
+                
+                summary_ws.cell(row=current_row, column=1, value=f"Valid only - Semester GPA: {valid_sem_gpa}, Cumulative GPA: {valid_cum_gpa}")
+                current_row += 1
+            
+            current_row += 1  # Empty line between semesters
         
         # Detailed Results Sheet
         details_ws = wb.create_sheet("Detailed Results")
