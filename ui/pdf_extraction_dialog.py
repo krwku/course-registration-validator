@@ -69,13 +69,19 @@ class PDFExtractionDialog(tk.Toplevel):
         
         # Button frame
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=10)
+        button_frame.pack(fill=tk.X, pady=15)
         
-        ttk.Button(button_frame, text="Cancel", 
-                 command=self.destroy, width=20, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
+        cancel_btn = tk.Button(button_frame, text="Cancel", 
+                              command=self.destroy, 
+                              width=18, height=2,
+                              font=("Arial", 10))
+        cancel_btn.pack(side=tk.RIGHT, padx=8, pady=5)
         
-        ttk.Button(button_frame, text="Proceed with Extraction", 
-                 command=self.proceed, width=20, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
+        proceed_btn = tk.Button(button_frame, text="Proceed with Extraction", 
+                               command=self.proceed, 
+                               width=18, height=2,
+                               font=("Arial", 10))
+        proceed_btn.pack(side=tk.RIGHT, padx=8, pady=5)
     
     def proceed(self):
         """Process the corrected text and call the callback."""
