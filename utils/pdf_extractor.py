@@ -50,45 +50,45 @@ class PDFExtractor:
             return ""
     
     def extract_student_info(self, text):
-        """
-        Extract student information from the extracted text.
-        
-        Args:
-            text: Extracted text from PDF
+            """
+            Extract student information from the extracted text.
             
-        Returns:
-            Dictionary containing student information
-        """
-        # Extract student ID
-        student_id = "Unknown"
-        id_match = re.search(r'Student No\s*(\d+)', text)
-        if id_match:
-            student_id = id_match.group(1).strip()
-        
-        # Extract name
-        student_name = "Unknown"
-        name_match = re.search(r'Name\s+(.*?)(?:\n|$)', text)
-        if name_match:
-            student_name = name_match.group(1).strip()
-        
-        # Extract field of study
-        field_of_study = "Unknown"
-        field_match = re.search(r'Field of Study\s+(.*?)(?:\n|$)', text)
-        if field_match:
-            field_of_study = field_match.group(1).strip()
-        
-        # Extract date of admission
-        date_admission = "Unknown"
-        date_match = re.search(r'Date of Admission\s+(.*?)(?:\n|$)', text)
-        if date_match:
-            date_admission = date_match.group(1).strip()
-        
-        return {
-            "id": student_id,
-            "name": student_name,
-            "field_of_study": field_of_study,
-            "date_admission": date_admission
-        }
+            Args:
+                text: Extracted text from PDF
+                
+            Returns:
+                Dictionary containing student information
+            """
+            # Extract student ID
+            student_id = "Unknown"
+            id_match = re.search(r'Student No\s*(\d+)', text)
+            if id_match:
+                student_id = id_match.group(1).strip()
+            
+            # Extract name - stop at "Field of Study" 
+            student_name = "Unknown"
+            name_match = re.search(r'Name\s+(.*?)(?=Field of Study|Date of Admission|\n|$)', text)
+            if name_match:
+                student_name = name_match.group(1).strip()
+            
+            # Extract field of study
+            field_of_study = "Unknown"
+            field_match = re.search(r'Field of Study\s+(.*?)(?=Date of Admission|\n|$)', text)
+            if field_match:
+                field_of_study = field_match.group(1).strip()
+            
+            # Extract date of admission
+            date_admission = "Unknown"
+            date_match = re.search(r'Date of Admission\s+(.*?)(?:\n|$)', text)
+            if date_match:
+                date_admission = date_match.group(1).strip()
+            
+            return {
+                "id": student_id,
+                "name": student_name,
+                "field_of_study": field_of_study,
+                "date_admission": date_admission
+            }
     
     def extract_semesters(self, text):
         """
