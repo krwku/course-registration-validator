@@ -115,17 +115,70 @@ def save_validation_report_excel(student_info, semesters, validation_results, fi
     """
     try:
         from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill
+        from openpyxl.styles import Font, PatternFill, Alignment
         from datetime import datetime
         
         wb = Workbook()
-        ws = wb.active
-        ws.title = "Validation Results"
+        
+        # Remove default sheet and create Summary sheet
+        wb.remove(wb.active)
+        summary_ws = wb.create_sheet("Summary")
+        
+        # Student Information section
+        summary_ws['A1'] = "COURSE REGISTRATION VALIDATION REPORT"
+        summary_ws['A1'].font = Font(bold=True, size=14)
+        summary_ws['A2'] = f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        
+        summary_ws['A4'] = "STUDENT INFORMATION"
+        summary_ws['A4'].font = Font(bold=True)
+        summary_ws['A5'] = "Student ID:"
+        summary_ws['B5'] = student_info.get('id', 'Unknown')
+        summary_ws['A6'] = "Name:"
+        summary_ws['B6'] = student_info.get('name', 'Unknown')
+        summary_ws['A7'] = "Field of Study:"
+        summary_ws['B7'] = student_info.get('field_of_study', 'Unknown')
+        summary_ws['A8'] = "Date of Admission:"
+        summary_ws['B8'] = student_info.get('date_admission', 'Unknown')
+        
+        # Validation Summary
+        invalid_count = len([r for r in validation_results if not r.get("is_valid", True)])
+        summary_ws['A10'] = "VALIDATION SUMMARY"
+        summary_ws['A10'].font = Font(bold=True)
+        summary_ws['A11'] = "Semesters Analyzed:"
+        summary_ws['B11'] = len(semesters)
+        summary_ws['A12'] = "Registrations Checked:"
+        summary_ws['B12'] = len(validation_results)
+        summary_ws['A13'] = "Invalid Registrations:"
+        summary_ws['B13'] = invalid_count
+        
+        # Semester Overview
+        summary_ws['A15'] = "SEMESTER OVERVIEW"
+        summary_ws['A15'].font = Font(bold=True)
+        
+        sem_headers = ["Semester", "Credits", "Sem GPA", "Cum GPA", "Issues"]
+        for col, header in enumerate(sem_headers, 1):
+            cell = summary_ws.cell(row=16, column=col)
+            cell.value = header
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+        
+        for row, semester in enumerate(semesters, 17):
+            semester_issues = len([r for r in validation_results 
+                                 if r.get("semester") == semester.get("semester") and not r.get("is_valid", True)])
+            
+            summary_ws.cell(row=row, column=1, value=semester.get("semester", ""))
+            summary_ws.cell(row=row, column=2, value=semester.get("total_credits", 0))
+            summary_ws.cell(row=row, column=3, value=semester.get("sem_gpa", ""))
+            summary_ws.cell(row=row, column=4, value=semester.get("cum_gpa", ""))
+            summary_ws.cell(row=row, column=5, value=semester_issues)
+        
+        # Detailed Results Sheet
+        details_ws = wb.create_sheet("Detailed Results")
         
         # Headers
-        headers = ["Semester", "Course Code", "Course Name", "Grade", "Credits", "Valid", "Issue", "Reason"]
+        headers = ["Semester", "Course Code", "Course Name", "Grade", "Credits", "Valid", "Issue Type", "Reason"]
         for col_num, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col_num)
+            cell = details_ws.cell(row=1, column=col_num)
             cell.value = header
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
@@ -135,10 +188,10 @@ def save_validation_report_excel(student_info, semesters, validation_results, fi
         for result in validation_results:
             is_valid = result.get("is_valid", True)
             
-            ws.cell(row=row_num, column=1, value=result.get("semester", ""))
-            ws.cell(row=row_num, column=2, value=result.get("course_code", ""))
-            ws.cell(row=row_num, column=3, value=result.get("course_name", ""))
-            ws.cell(row=row_num, column=4, value=result.get("grade", ""))
+            details_ws.cell(row=row_num, column=1, value=result.get("semester", ""))
+            details_ws.cell(row=row_num, column=2, value=result.get("course_code", ""))
+            details_ws.cell(row=row_num, column=3, value=result.get("course_name", ""))
+            details_ws.cell(row=row_num, column=4, value=result.get("grade", ""))
             
             # Get credits from semester data
             credits = ""
@@ -149,29 +202,30 @@ def save_validation_report_excel(student_info, semesters, validation_results, fi
                         credits = course.get("credits", "")
                         break
             
-            ws.cell(row=row_num, column=5, value=credits)
-            ws.cell(row=row_num, column=6, value="Yes" if is_valid else "No")
-            ws.cell(row=row_num, column=7, value=result.get("type", ""))
-            ws.cell(row=row_num, column=8, value=result.get("reason", ""))
+            details_ws.cell(row=row_num, column=5, value=credits)
+            details_ws.cell(row=row_num, column=6, value="Yes" if is_valid else "No")
+            details_ws.cell(row=row_num, column=7, value=result.get("type", ""))
+            details_ws.cell(row=row_num, column=8, value=result.get("reason", ""))
             
             # Color invalid courses red
             if not is_valid:
                 for col in range(1, 9):
-                    ws.cell(row=row_num, column=col).fill = PatternFill(start_color="FFCCCC", end_color="FFCCCC", fill_type="solid")
+                    details_ws.cell(row=row_num, column=col).fill = PatternFill(start_color="FFCCCC", end_color="FFCCCC", fill_type="solid")
             
             row_num += 1
         
-        # Auto-adjust column widths
-        for column in ws.columns:
-            max_length = 0
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = min(max_length + 2, 50)
-            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        # Auto-adjust column widths for both sheets
+        for ws in [summary_ws, details_ws]:
+            for column in ws.columns:
+                max_length = 0
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column[0].column_letter].width = adjusted_width
         
         wb.save(file_path)
         logger.info(f"Saved validation report to Excel: {file_path}")
