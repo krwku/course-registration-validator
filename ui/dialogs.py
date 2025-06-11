@@ -16,7 +16,7 @@ class FormatSelectionDialog(tk.Toplevel):
     def __init__(self, parent, callback=None):
         super().__init__(parent)
         self.title("Select Report Format")
-        self.geometry("350x200")
+        self.geometry("500x300")
         self.transient(parent)
         self.grab_set()
         
