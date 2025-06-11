@@ -69,6 +69,7 @@ class PDFExtractionDialog(tk.Toplevel):
         
         # Button frame
         button_frame = ttk.Frame(main_frame)
+
         button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         
         # Use tk.Button for better size control
