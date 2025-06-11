@@ -16,7 +16,7 @@ class FormatSelectionDialog(tk.Toplevel):
     def __init__(self, parent, callback=None):
         super().__init__(parent)
         self.title("Select Report Format")
-        self.geometry("300x150")
+        self.geometry("350x200")
         self.transient(parent)
         self.grab_set()
         
@@ -36,9 +36,18 @@ class FormatSelectionDialog(tk.Toplevel):
         
         # Buttons
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(15, 0))
-        ttk.Button(button_frame, text="Cancel", command=self.cancel, width=15, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
-        ttk.Button(button_frame, text="OK", command=self.ok, width=15, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
+        button_frame.pack(fill=tk.X, pady=(20, 10))
+        cancel_btn = tk.Button(button_frame, text="Cancel", 
+                              command=self.cancel, 
+                              width=12, height=2,
+                              font=("Arial", 10))
+        cancel_btn.pack(side=tk.RIGHT, padx=8, pady=5)
+        
+        ok_btn = tk.Button(button_frame, text="OK", 
+                          command=self.ok, 
+                          width=12, height=2,
+                          font=("Arial", 10))
+        ok_btn.pack(side=tk.RIGHT, padx=8, pady=5)
         
         # Center window
         self.update_idletasks()
