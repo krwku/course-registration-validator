@@ -12,25 +12,25 @@ class PDFExtractionDialog(tk.Toplevel):
     """Dialog for extracting and correcting text from PDF transcripts."""
     
     def __init__(self, parent, extracted_text, callback):
-        """
-        Initialize the PDF extraction dialog.
-        
-        Args:
-            parent: Parent tkinter widget
-            extracted_text: Text extracted from PDF
-            callback: Function to call with corrected text
-        """
-        super().__init__(parent)
-        self.title("PDF Extraction - Manual Correction")
-        self.geometry("800x600")
-        self.transient(parent)
-        self.grab_set()
-        
-        self.extracted_text = extracted_text
-        self.callback = callback
-        
-        # Create UI elements
-        self.create_widgets()
+            """
+            Initialize the PDF extraction dialog.
+            
+            Args:
+                parent: Parent tkinter widget
+                extracted_text: Text extracted from PDF
+                callback: Function to call with corrected text
+            """
+            super().__init__(parent)
+            self.title("PDF Extraction - Manual Correction")
+            self.geometry("900x700")  # Increased from 800x600
+            self.transient(parent)
+            self.grab_set()
+            
+            self.extracted_text = extracted_text
+            self.callback = callback
+            
+            # Create UI elements
+            self.create_widgets()
     
     def create_widgets(self):
         """Create UI widgets for the PDF extraction dialog."""
@@ -69,13 +69,21 @@ class PDFExtractionDialog(tk.Toplevel):
         
         # Button frame
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=10)
+
+        button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         
-        ttk.Button(button_frame, text="Cancel", 
-                 command=self.destroy, width=20).pack(side=tk.RIGHT, padx=5)
+        # Use tk.Button for better size control
+        proceed_btn = tk.Button(button_frame, text="Proceed with Extraction", 
+                               command=self.proceed, 
+                               width=20, height=2,
+                               font=("Arial", 10))
+        proceed_btn.pack(side=tk.RIGHT, padx=5)
         
-        ttk.Button(button_frame, text="Proceed with Extraction", 
-                 command=self.proceed, width=20).pack(side=tk.RIGHT, padx=5)
+        cancel_btn = tk.Button(button_frame, text="Cancel", 
+                              command=self.destroy, 
+                              width=15, height=2,
+                              font=("Arial", 10))
+        cancel_btn.pack(side=tk.RIGHT, padx=5)
     
     def proceed(self):
         """Process the corrected text and call the callback."""

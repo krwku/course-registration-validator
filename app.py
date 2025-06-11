@@ -517,65 +517,63 @@ class TranscriptEditorApp(tk.Tk):
         self.perform_validation()
     
     def perform_validation(self, auto_open_report=False):
-        """
-        Perform validation using the current course data.
-        
-        Args:
-            auto_open_report: Whether to automatically open the report
-        """
+        """Perform validation using the current course data."""
         # Make sure validator is initialized
         if not self.validation_adapter.initialize_validator(str(config.current_course_data)):
             messagebox.showerror("Error", "Failed to initialize validator")
-            self.report_status("Validation failed - could not initialize validator")
             return
         
         # Validate the current transcript
         self.report_status("Validating transcript...")
-        
         validation_results = self.validation_adapter.validate_transcript(
-            self.model.student_info, 
-            self.model.semesters
-        )
+            self.model.student_info, self.model.semesters)
         
         if not validation_results:
             messagebox.showerror("Error", "Validation failed")
-            self.report_status("Validation failed")
             return
         
-        # Generate report
-        report = self.validation_adapter.generate_validation_report(
-            self.model.student_info,
-            self.model.semesters,
-            validation_results
-        )
-        
-        # Get student ID for report filename
+        # Get student ID for filename
         student_id = self.model.student_info.get("id", "unknown")
         
-        # Save the report
-        report_path = config.reports_dir / f"validation_report_{student_id}.txt"
-        with open(report_path, 'w', encoding='utf-8') as file:
-            file.write(report)
+        # Ask user for format
+        from ui.dialogs import FormatSelectionDialog
         
-        # Count invalid results
-        invalid_count = len([r for r in validation_results if not r.get("is_valid", True)])
-        self.report_status(f"Validation complete - {invalid_count} issues found")
+        def save_report(format_type):
+            if format_type is None:
+                return
+            
+            # Choose file path based on format
+            if format_type == "excel":
+                report_path = config.reports_dir / f"validation_report_{student_id}.xlsx"
+                # Import and use Excel export function
+                from utils.file_operations import save_validation_report_excel
+                success = save_validation_report_excel(
+                    self.model.student_info, self.model.semesters, validation_results, report_path)
+            else:
+                # Text format (existing code)
+                report_path = config.reports_dir / f"validation_report_{student_id}.txt"
+                report = self.validation_adapter.generate_validation_report(
+                    self.model.student_info, self.model.semesters, validation_results)
+                with open(report_path, 'w', encoding='utf-8') as file:
+                    file.write(report)
+                success = True
+            
+            if success:
+                invalid_count = len([r for r in validation_results if not r.get("is_valid", True)])
+                self.report_status(f"Validation complete - {invalid_count} issues found")
+                
+                if auto_open_report:
+                    # Open the file
+                    if sys.platform == 'win32':
+                        os.startfile(report_path)
+                    elif sys.platform == 'darwin':
+                        subprocess.call(['open', str(report_path)])
+                    else:
+                        subprocess.call(['xdg-open', str(report_path)])
+            else:
+                messagebox.showerror("Error", f"Failed to save {format_type} report")
         
-        if auto_open_report:
-            # Automatically open the report
-            try:
-                if sys.platform == 'win32':
-                    os.startfile(report_path)
-                elif sys.platform == 'darwin':  # macOS
-                    subprocess.call(['open', str(report_path)])
-                else:  # Linux
-                    subprocess.call(['xdg-open', str(report_path)])
-            except Exception as e:
-                logger.error(f"Failed to open report: {e}")
-                messagebox.showwarning("Warning", f"Could not automatically open report: {e}")
-        else:
-            # Show report dialog
-            ValidationReportDialog(self, report, validation_results)
+        FormatSelectionDialog(self, save_report)
     
     def select_course_data(self):
         """Select a course data file."""
