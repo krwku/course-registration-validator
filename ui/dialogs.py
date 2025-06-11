@@ -37,8 +37,8 @@ class FormatSelectionDialog(tk.Toplevel):
         # Buttons
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(fill=tk.X, pady=(15, 0))
-        ttk.Button(button_frame, text="Cancel", command=self.cancel).pack(side=tk.RIGHT, padx=5)
-        ttk.Button(button_frame, text="OK", command=self.ok).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel, width=15, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(button_frame, text="OK", command=self.ok, width=15, padding=(10, 8)).pack(side=tk.RIGHT, padx=5)
         
         # Center window
         self.update_idletasks()
