@@ -14,46 +14,49 @@ class FormatSelectionDialog(tk.Toplevel):
     """Dialog for selecting report output format."""
     
     def __init__(self, parent, callback=None):
-        super().__init__(parent)
-        self.title("Select Report Format")
-        self.geometry("750x450")
-        self.transient(parent)
-        self.grab_set()
-        
-        self.callback = callback
-        
-        # Main frame
-        main_frame = ttk.Frame(self, padding=20)
-        main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # Title
-        ttk.Label(main_frame, text="Choose report format:", font=("Arial", 10, "bold")).pack(pady=(0, 10))
-        
-        # Format selection
-        self.format_var = tk.StringVar(value="text")
-        ttk.Radiobutton(main_frame, text="Text File (.txt)", variable=self.format_var, value="text").pack(anchor=tk.W, pady=2)
-        ttk.Radiobutton(main_frame, text="Excel File (.xlsx)", variable=self.format_var, value="excel").pack(anchor=tk.W, pady=2)
-        
-        # Buttons
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(20, 10))
-        cancel_btn = tk.Button(button_frame, text="Cancel", 
-                              command=self.cancel, 
+            super().__init__(parent)
+            self.title("Select Report Format")
+            self.geometry("400x250")
+            self.transient(parent)
+            self.grab_set()
+            
+            self.callback = callback
+            
+            # Main frame
+            main_frame = ttk.Frame(self, padding=20)
+            main_frame.pack(fill=tk.BOTH, expand=True)
+            
+            # Title
+            ttk.Label(main_frame, text="Choose report format:", font=("Arial", 10, "bold")).pack(pady=(0, 10))
+            
+            # Format selection
+            self.format_var = tk.StringVar(value="text")
+            ttk.Radiobutton(main_frame, text="Text File (.txt)", variable=self.format_var, value="text").pack(anchor=tk.W, pady=2)
+            ttk.Radiobutton(main_frame, text="Excel File (.xlsx)", variable=self.format_var, value="excel").pack(anchor=tk.W, pady=2)
+            
+            # Buttons
+            button_frame = ttk.Frame(main_frame)
+            button_frame.pack(fill=tk.X, pady=(20, 10))
+            
+            cancel_btn = tk.Button(button_frame, text="Cancel", 
+                                  command=self.cancel, 
+                                  width=12, height=2,
+                                  font=("Arial", 10))
+            cancel_btn.pack(side=tk.RIGHT, padx=8, pady=5)
+            
+            ok_btn = tk.Button(button_frame, text="OK", 
+                              command=self.ok, 
                               width=12, height=2,
                               font=("Arial", 10))
-        cancel_btn.pack(side=tk.RIGHT, padx=8, pady=5)
-        
-        ok_btn = tk.Button(button_frame, text="OK", 
-                          command=self.ok, 
-                          width=12, height=2,
-                          font=("Arial", 10))
-        ok_btn.pack(side=tk.RIGHT, padx=8, pady=5)
-        
-        # Center window
-        self.update_idletasks()
-        x = (self.winfo_screenwidth() // 2) - (150)
-        y = (self.winfo_screenheight() // 2) - (75)
-        self.geometry(f"300x150+{x}+{y}")
+            ok_btn.pack(side=tk.RIGHT, padx=8, pady=5)
+            
+            # Center window with CORRECT size
+            self.update_idletasks()
+            width = 400
+            height = 250
+            x = (self.winfo_screenwidth() // 2) - (width // 2)
+            y = (self.winfo_screenheight() // 2) - (height // 2)
+            self.geometry(f"{width}x{height}+{x}+{y}")
     
     def ok(self):
         if self.callback:
