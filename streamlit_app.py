@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 import tempfile
 import os
+import io
+import PyPDF2  # Add this import
 
 # Add your existing modules to path
 sys.path.append(str(Path(__file__).parent))
@@ -44,6 +46,27 @@ def load_available_course_data():
     
     return available_files
 
+def extract_text_from_pdf_bytes(pdf_bytes):
+    """Extract text from PDF bytes using PyPDF2"""
+    try:
+        # Create a BytesIO object from the uploaded file
+        pdf_file = io.BytesIO(pdf_bytes)
+        
+        # Create PDF reader
+        reader = PyPDF2.PdfReader(pdf_file)
+        
+        all_text = []
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text and page_text.strip():
+                all_text.append(page_text)
+        
+        return "\n".join(all_text)
+    
+    except Exception as e:
+        st.error(f"Error extracting text from PDF: {e}")
+        return ""
+
 def main():
     st.set_page_config(
         page_title="Course Registration Validator", 
@@ -61,6 +84,8 @@ def main():
         st.session_state.semesters = []
     if 'selected_course_data' not in st.session_state:
         st.session_state.selected_course_data = None
+    if 'extracted_text' not in st.session_state:
+        st.session_state.extracted_text = ""
     
     # Load available course data
     available_course_data = load_available_course_data()
@@ -93,6 +118,11 @@ def main():
             type=['pdf'],
             help="Upload student transcript PDF for validation"
         )
+        
+        # Show PDF info if uploaded
+        if pdf_file is not None:
+            st.info(f"📄 File: {pdf_file.name}")
+            st.info(f"📊 Size: {len(pdf_file.getvalue()) / 1024:.1f} KB")
     
     # Main content area
     if pdf_file is not None and st.session_state.selected_course_data is not None:
@@ -103,54 +133,71 @@ def main():
         with col1:
             st.header("📄 PDF Processing")
             
-            if st.button("🔄 Extract Data from PDF", type="primary"):
-                with st.spinner("Extracting data from PDF..."):
-                    try:
-                        # Use your existing PDF extractor
-                        extractor = PDFExtractor()
+            # Step 1: Extract raw text
+            if st.button("🔍 Step 1: Extract Text from PDF", type="primary"):
+                with st.spinner("Extracting text from PDF..."):
+                    pdf_bytes = pdf_file.getvalue()
+                    extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
+                    
+                    if extracted_text:
+                        st.session_state.extracted_text = extracted_text
+                        st.success(f"✅ Extracted {len(extracted_text)} characters from PDF")
                         
-                        # Read PDF content
-                        pdf_content = pdf_file.getvalue()
-                        
-                        # Try to decode PDF content properly
+                        # Show first 500 characters as preview
+                        with st.expander("📖 Text Preview (First 500 characters)"):
+                            st.text(extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text)
+                    else:
+                        st.error("❌ No text extracted from PDF")
+                        st.warning("This might be a scanned/image PDF. Try using a text-based PDF.")
+            
+            # Step 2: Process extracted text
+            if st.session_state.extracted_text:
+                st.divider()
+                
+                if st.button("🔄 Step 2: Process Extracted Text", type="secondary"):
+                    with st.spinner("Processing extracted text..."):
                         try:
-                            # First try as bytes (for process_pdf method)
-                            student_info, semesters, extracted_text = extractor.process_pdf(None, pdf_content)
-                        except:
-                            # Fallback: try decoding as text
-                            pdf_text = pdf_content.decode('latin-1', errors='ignore')
-                            student_info, semesters, extracted_text = extractor.process_pdf(None, pdf_text)
-                        
-                        if student_info and semesters:
-                            st.session_state.student_info = student_info
-                            st.session_state.semesters = semesters
-                            st.success("✅ PDF data extracted successfully!")
+                            # Use your existing PDF extractor with the extracted text
+                            extractor = PDFExtractor()
                             
-                            # Show extracted info
-                            with st.expander("📋 Extracted Student Information", expanded=True):
-                                col_a, col_b = st.columns(2)
-                                with col_a:
-                                    st.write(f"**Student ID:** {student_info.get('id', 'Unknown')}")
-                                    st.write(f"**Name:** {student_info.get('name', 'Unknown')}")
-                                with col_b:
-                                    st.write(f"**Field of Study:** {student_info.get('field_of_study', 'Unknown')}")
-                                    st.write(f"**Date of Admission:** {student_info.get('date_admission', 'Unknown')}")
+                            # Process the extracted text
+                            student_info, semesters, _ = extractor.process_pdf(None, st.session_state.extracted_text)
                             
-                            with st.expander("📚 Extracted Semesters Summary"):
-                                st.write(f"**Total Semesters Found:** {len(semesters)}")
-                                for i, sem in enumerate(semesters):
-                                    semester_name = sem.get('semester', f'Semester {i+1}')
-                                    course_count = len(sem.get('courses', []))
-                                    total_credits = sem.get('total_credits', 0)
-                                    st.write(f"• **{semester_name}:** {course_count} courses, {total_credits} credits")
-                        else:
-                            st.error("❌ Failed to extract data from PDF")
-                            st.info("💡 Try manually checking if the PDF contains readable text")
-                            
-                    except Exception as e:
-                        st.error(f"❌ Error processing PDF: {e}")
-                        with st.expander("🔍 Debug Information"):
-                            st.exception(e)
+                            if student_info and semesters:
+                                st.session_state.student_info = student_info
+                                st.session_state.semesters = semesters
+                                st.success("✅ Data processed successfully!")
+                                
+                                # Show extracted info
+                                with st.expander("📋 Extracted Student Information", expanded=True):
+                                    col_a, col_b = st.columns(2)
+                                    with col_a:
+                                        st.write(f"**Student ID:** {student_info.get('id', 'Unknown')}")
+                                        st.write(f"**Name:** {student_info.get('name', 'Unknown')}")
+                                    with col_b:
+                                        st.write(f"**Field of Study:** {student_info.get('field_of_study', 'Unknown')}")
+                                        st.write(f"**Date of Admission:** {student_info.get('date_admission', 'Unknown')}")
+                                
+                                with st.expander("📚 Extracted Semesters Summary"):
+                                    st.write(f"**Total Semesters Found:** {len(semesters)}")
+                                    for i, sem in enumerate(semesters):
+                                        semester_name = sem.get('semester', f'Semester {i+1}')
+                                        course_count = len(sem.get('courses', []))
+                                        total_credits = sem.get('total_credits', 0)
+                                        st.write(f"• **{semester_name}:** {course_count} courses, {total_credits} credits")
+                            else:
+                                st.error("❌ Failed to process extracted text")
+                                st.info("💡 The text might not be in the expected transcript format")
+                                
+                                # Show debugging info
+                                with st.expander("🔍 Debug: Show Raw Extracted Text"):
+                                    st.text_area("Raw Text", st.session_state.extracted_text, height=200)
+                                
+                        except Exception as e:
+                            st.error(f"❌ Error processing text: {e}")
+                            with st.expander("🔍 Debug Information"):
+                                st.exception(e)
+                                st.text_area("Raw Text", st.session_state.extracted_text, height=200)
         
         with col2:
             st.header("✅ Validation")
@@ -281,7 +328,7 @@ def main():
                             with st.expander("🔍 Error Details"):
                                 st.exception(e)
             else:
-                st.info("👆 Extract data from PDF first to enable validation")
+                st.info("👆 Extract and process PDF data first to enable validation")
     
     else:
         # Welcome message and instructions
@@ -294,9 +341,10 @@ def main():
             st.markdown("""
             1. **Select course catalog** (already loaded!)
             2. **Upload PDF transcript** in the sidebar
-            3. **Extract data** from the PDF
-            4. **Validate** against course requirements
-            5. **Download** validation report
+            3. **Extract text** from the PDF
+            4. **Process extracted text** into transcript data
+            5. **Validate** against course requirements
+            6. **Download** validation report
             """)
         
         with col_info2:
@@ -307,6 +355,7 @@ def main():
             
             st.markdown("### 📄 Supported PDF Format:")
             st.markdown("• Academic transcripts with student info and course grades")
+            st.markdown("• Text-based PDFs (not scanned images)")
 
 if __name__ == "__main__":
     main()
