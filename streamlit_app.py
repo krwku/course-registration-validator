@@ -373,15 +373,18 @@ def main():
             
             # Generate flow chart - AUTO-OPEN IN NEW WINDOW
             try:
-                with st.spinner("Generating interactive curriculum flow chart..."):
-                    flow_html, flow_unidentified = create_semester_flow_html(
-                        st.session_state.student_info,
-                        st.session_state.semesters,
-                        st.session_state.validation_results
-                    )
+				with st.spinner("Generating template-based curriculum flow chart..."):
+					from utils.template_flow_generator import create_template_based_flow_html
+					
+					flow_html, flow_unidentified = create_template_based_flow_html(
+						st.session_state.student_info,
+						st.session_state.semesters,
+						st.session_state.validation_results,
+						st.session_state.selected_course_data  # Pass selected course data
+					)
                 
-                st.subheader("🗂️ Interactive Curriculum Flow Chart")
-                st.markdown("*Visual curriculum progression with prerequisite relationships*")
+                st.subheader("🗂️ Template-Based Curriculum Flow Chart")
+                st.markdown("*Shows ideal curriculum template with your actual progress and deviations*")
                 
                 if flow_html and len(flow_html.strip()) > 0:
                     # Escape the backticks in the HTML content for the f-string
@@ -485,11 +488,14 @@ def main():
                             st.warning(f"⚠️ {flow_unidentified} unidentified")
                     else:
                         # Generate flow chart for download if not already generated
-                        flow_html, flow_unidentified = create_semester_flow_html(
-                            st.session_state.student_info,
-                            st.session_state.semesters,
-                            st.session_state.validation_results
-                        )
+						from utils.template_flow_generator import create_template_based_flow_html
+
+						flow_html, flow_unidentified = create_template_based_flow_html(
+							st.session_state.student_info,
+							st.session_state.semesters,
+							st.session_state.validation_results,
+							st.session_state.selected_course_data
+						)
                         
                         st.download_button(
                             label="🗂️ Flow Chart (HTML)",
@@ -616,3 +622,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
