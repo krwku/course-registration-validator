@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
 Adapter for interfacing with the validation logic.
+Simplified for Streamlit web interface - removed GUI dependencies.
 """
 import os
 import sys
 import importlib.util
 import logging
 from pathlib import Path
-from utils.config import config
 
 logger = logging.getLogger("validation_adapter")
 
 class ValidationAdapter:
-    """Class to adapt between the transcript editor and validator."""
+    """Class to adapt between the web interface and validator."""
     
     def __init__(self, validator_path=None):
         """
@@ -52,7 +52,7 @@ class ValidationAdapter:
             logger.error(f"Failed to load validator module: {e}")
             return False
     
-    def initialize_validator(self, course_data_path=None):
+    def initialize_validator(self, course_data_path):
         """
         Initialize the validator with course data.
         
@@ -64,11 +64,6 @@ class ValidationAdapter:
                 return False
         
         try:
-            # Use provided course data path or default
-            course_data_path = course_data_path or (
-                config.current_course_data if config.current_course_data else 
-                config.default_course_data)
-            
             # Initialize the validator
             self.validator = self.validator_module.CourseRegistrationValidator(str(course_data_path))
             logger.info(f"Initialized validator with course data from {course_data_path}")
@@ -77,10 +72,6 @@ class ValidationAdapter:
         except Exception as e:
             logger.error(f"Failed to initialize validator: {e}")
             return False
-    
-    def get_available_course_data_files(self):
-        """Get a list of available course data files."""
-        return config.get_available_course_data_files()
     
     def validate_transcript(self, student_info, semesters):
         """
@@ -94,9 +85,8 @@ class ValidationAdapter:
             List of validation results
         """
         if self.validator is None:
-            if not self.initialize_validator():
-                logger.error("Cannot validate - validator not initialized")
-                return []
+            logger.error("Cannot validate - validator not initialized")
+            return []
         
         try:
             # Build a history of passed courses for each semester
@@ -216,8 +206,7 @@ class ValidationAdapter:
             Report text
         """
         if self.validator is None:
-            if not self.initialize_validator():
-                return "Validator not initialized - cannot generate report"
+            return "Validator not initialized - cannot generate report"
         
         try:
             # Use the validator's report generation method
