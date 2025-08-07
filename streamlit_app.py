@@ -241,7 +241,10 @@ def classify_course_for_flow(course_code, course_name="", course_categories=None
     return ("unidentified", "unknown", False)
 
 def analyze_student_progress_fixed(semesters, template, course_categories):
-    """FIXED: Analyze student's actual progress against the curriculum template with much more lenient deviation detection."""
+    """
+    FIXED: Analyze student's actual progress against the curriculum template with much more lenient deviation detection.
+    Updated to use proper technical electives classification.
+    """
     # Organize student courses by completion status
     completed_courses = {}
     failed_courses = {}
@@ -356,7 +359,7 @@ def analyze_student_progress_fixed(semesters, template, course_categories):
                             "year_diff": year_diff
                         })
 
-    # Analyze elective courses (unchanged)
+    # Analyze elective courses (FIXED: Now uses proper technical electives classification)
     elective_analysis = {}
     for category, required_credits in template.get("elective_requirements", {}).items():
         elective_analysis[category] = {"required": required_credits, "completed": 0, "courses": []}
@@ -381,10 +384,11 @@ def analyze_student_progress_fixed(semesters, template, course_categories):
                     break
             
             if not is_core:
+                # FIXED: Use the updated classify function that properly handles technical electives
                 category, subcategory, is_identified = classify_course_for_flow(code, course.get("name", ""), course_categories)
                 
                 elective_key = None
-                if category == "technical_electives":
+                if category == "technical_electives":  # FIXED: Now properly handled
                     elective_key = "technical_electives"
                 elif category == "gen_ed":
                     elective_key = subcategory
@@ -1504,5 +1508,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
