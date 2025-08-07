@@ -263,10 +263,11 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
         
         .deviation-alert {
             background: #fff3cd;
-            border: 1px solid #ffeaa7;
+            border: 1px solid #f39c12;
             padding: 15px;
             margin-bottom: 20px;
             border-radius: 5px;
+            border-left: 4px solid #f39c12;
         }
         
         .year-container {
@@ -350,7 +351,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
         }
         
         .course-deviation {
-            border: 3px solid #e74c3c !important;
+            border: 3px solid #f39c12 !important;
         }
         
         .course-deviation::before {
@@ -358,7 +359,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: #f39c12;
             color: white;
             border-radius: 50%;
             width: 18px;
@@ -375,7 +376,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background: #e74c3c;
+            background: #f39c12;
             color: white;
             padding: 5px 10px;
             border-radius: 4px;
@@ -512,8 +513,8 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     if analysis['deviations']:
         html_content += f"""
         <div class="deviation-alert">
-            <h4>⚠️ Schedule Deviations Detected ({len(analysis['deviations'])} courses)</h4>
-            <p>Some courses were taken in different semesters than the recommended template. Hover over courses with ⚠️ for details.</p>
+            <h4>📅 Schedule Variations Detected ({len(analysis['deviations'])} courses)</h4>
+            <p><strong>Note:</strong> Some courses were taken in different semesters than the standard template timeline. This is common and often due to course availability, prerequisites, or academic planning. Hover over courses with ⚠️ for details.</p>
         </div>
         """
     
@@ -541,8 +542,8 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             <span>Not Taken</span>
         </div>
         <div class="legend-item">
-            <span style="color: #e74c3c; font-weight: bold;">⚠️</span>
-            <span>Schedule Deviation</span>
+            <span style="color: #f39c12; font-weight: bold;">⚠️</span>
+            <span>Schedule Variation</span>
         </div>
     </div>
     """
