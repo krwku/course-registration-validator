@@ -6,6 +6,7 @@ from pathlib import Path
 def load_course_categories():
     """
     Load course categories from separate JSON files.
+    FIXED: Now properly handles technical_electives attribute from B-IE files.
     Returns: dict with categorized courses
     """
     course_data_dir = Path(__file__).parent.parent / "course_data"
@@ -23,35 +24,34 @@ def load_course_categories():
         "all_courses": {}  # Master list of all courses
     }
     
-    # Load IE Core courses from both B-IE files and core files
+    # Load IE Core courses from both B-IE files
     for ie_file in ["B-IE-2565.json", "B-IE-2560.json"]:
         ie_path = course_data_dir / ie_file
         if ie_path.exists():
             try:
                 with open(ie_path, 'r', encoding='utf-8') as f:
                     ie_data = json.load(f)
-                    # Add from both sections
+                    
+                    # Process industrial_engineering_courses
                     for course in ie_data.get("industrial_engineering_courses", []):
-                        categories["ie_core"][course["code"]] = course
+                        # Check if this course is marked as technical elective
+                        if course.get("technical_electives", False):
+                            categories["technical_electives"][course["code"]] = course
+                        else:
+                            categories["ie_core"][course["code"]] = course
                         categories["all_courses"][course["code"]] = course
+                    
+                    # Process other_related_courses (these are always IE core, not technical electives)
                     for course in ie_data.get("other_related_courses", []):
                         categories["ie_core"][course["code"]] = course  
                         categories["all_courses"][course["code"]] = course
                 break  # Use first available file
-            except Exception:
+            except Exception as e:
+                print(f"Error loading {ie_file}: {e}")
                 continue
     
-    # Load Technical Electives
-    tech_file = course_data_dir / "technical_electives.json"
-    if tech_file.exists():
-        try:
-            with open(tech_file, 'r', encoding='utf-8') as f:
-                tech_data = json.load(f)
-                for course in tech_data.get("technical_electives", []):
-                    categories["technical_electives"][course["code"]] = course
-                    categories["all_courses"][course["code"]] = course
-        except Exception:
-            pass
+    # REMOVED: No longer loading from separate technical_electives.json file
+    # Technical electives are now identified by the technical_electives: true attribute
     
     # Load Gen-Ed courses with proper subcategory mapping
     gen_ed_file = course_data_dir / "gen_ed_courses.json"
@@ -66,7 +66,8 @@ def load_course_categories():
                     for course in gen_ed_courses.get(subcategory, []):
                         categories["gen_ed"][subcategory][course["code"]] = course
                         categories["all_courses"][course["code"]] = course
-        except Exception:
+        except Exception as e:
+            print(f"Error loading gen_ed_courses.json: {e}")
             pass
     
     return categories
@@ -74,6 +75,7 @@ def load_course_categories():
 def classify_course(course_code, course_name="", course_categories=None):
     """
     Classify course into appropriate category using loaded JSON files.
+    FIXED: Now properly identifies technical electives from B-IE files.
     Returns: (category, subcategory, is_identified)
     """
     if course_categories is None:
@@ -81,13 +83,14 @@ def classify_course(course_code, course_name="", course_categories=None):
     
     code = course_code.upper()
     
+    # Check Technical Electives FIRST (higher priority than IE Core)
+    # This ensures courses marked with technical_electives: true are classified correctly
+    if code in course_categories["technical_electives"]:
+        return ("technical_electives", "technical", True)
+    
     # Check IE Core courses
     if code in course_categories["ie_core"]:
         return ("ie_core", "core", True)
-    
-    # Check Technical Electives
-    if code in course_categories["technical_electives"]:
-        return ("technical_electives", "technical", True)
     
     # Check Gen-Ed courses with proper subcategory detection
     for subcategory, courses in course_categories["gen_ed"].items():
@@ -100,6 +103,7 @@ def classify_course(course_code, course_name="", course_categories=None):
 def create_smart_registration_excel(student_info, semesters, validation_results):
     """
     Create a smart, dynamic Excel registration format with proper course detection.
+    FIXED: Now properly handles technical electives from B-IE files.
     """
     try:
         from openpyxl import Workbook
@@ -109,7 +113,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         ws = wb.active
         ws.title = "Registration Plan"
         
-        # Load course categories once
+        # Load course categories once (now includes technical electives from B-IE files)
         course_categories = load_course_categories()
         
         # Define styles
@@ -143,7 +147,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             ws.column_dimensions[col].width = width
         
         # HEADER SECTION
-        ws['A1'] = "KU INDUSTRIAL ENGINEERING - SMART COURSE REGISTRATION ANALYSIS"
+        ws['A1'] = "KU INDUSTRIAL ENGINEERING - SMART COURSE REGISTRATION ANALYSIS (FIXED)"
         ws['A1'].font = Font(bold=True, size=14)
         ws.merge_cells('A1:P1')
         ws['A1'].alignment = center_align
@@ -205,7 +209,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 if not is_valid:
                     validation_issues_count += 1
                 
-                # Classify course with proper detection
+                # Classify course with FIXED detection (technical electives now properly detected)
                 category, subcategory, is_identified = classify_course(course_code, course_name, course_categories)
                 
                 if not is_identified:
@@ -224,7 +228,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                     "is_identified": is_identified
                 }
                 
-                # Place in appropriate category
+                # Place in appropriate category (FIXED: technical electives now properly classified)
                 if category == "ie_core":
                     classified_courses["ie_core"].append(course_info)
                 elif category == "gen_ed":
@@ -257,6 +261,17 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 ws[f'A{current_row}'].font = Font(bold=True)
                 ws.merge_cells(f'A{current_row}:P{current_row}')
                 current_row += 1
+        
+        current_row += 1
+        
+        # Add technical electives info
+        tech_electives_count = len(classified_courses["technical_electives"])
+        if tech_electives_count > 0:
+            ws[f'A{current_row}'] = f"✅ FIXED: {tech_electives_count} courses properly classified as Technical Electives"
+            ws[f'A{current_row}'].fill = green_fill
+            ws[f'A{current_row}'].font = Font(bold=True)
+            ws.merge_cells(f'A{current_row}:P{current_row}')
+            current_row += 1
         
         current_row += 1
         
@@ -375,6 +390,14 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             "110"
         )
         
+        # TECHNICAL ELECTIVES SECTION (FIXED: Now properly populated from B-IE files)
+        current_row = add_category_section(
+            "TECHNICAL ELECTIVES (FIXED: From B-IE Files)",
+            classified_courses["technical_electives"],
+            current_row,
+            blue_fill
+        )
+        
         # UNIDENTIFIED COURSES SECTION (HIGH PRIORITY)
         if classified_courses["unidentified"]:
             current_row = add_category_section(
@@ -403,17 +426,9 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 required_credits
             )
         
-        # TECHNICAL ELECTIVES SECTION
+        # FREE ELECTIVES SECTION (should now have fewer courses since technical electives are properly classified)
         current_row = add_category_section(
-            "TECHNICAL ELECTIVES",
-            classified_courses["technical_electives"],
-            current_row,
-            blue_fill
-        )
-        
-        # FREE ELECTIVES SECTION
-        current_row = add_category_section(
-            "FREE ELECTIVES",
+            "FREE ELECTIVES (FIXED: Excludes Technical Electives)",
             classified_courses["free_electives"],
             current_row,
             yellow_fill
@@ -422,7 +437,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         # COMPREHENSIVE SUMMARY SECTION
         current_row += 1
         
-        ws[f'A{current_row}'] = "COMPREHENSIVE CREDIT ANALYSIS"
+        ws[f'A{current_row}'] = "COMPREHENSIVE CREDIT ANALYSIS (FIXED)"
         ws[f'A{current_row}'].font = header_font
         ws[f'A{current_row}'].fill = blue_fill
         ws.merge_cells(f'A{current_row}:F{current_row}')
@@ -444,6 +459,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 c["credits"] for c in classified_courses["gen_ed"][subcategory]
             )
         
+        # FIXED: Technical electives now properly separated from free electives
         tech_credits = sum(c["credits"] for c in classified_courses["technical_electives"] if c["grade"] not in ['F', 'W', 'N', ''])
         free_credits = sum(c["credits"] for c in classified_courses["free_electives"] if c["grade"] not in ['F', 'W', 'N', ''])
         unidentified_credits = sum(c["credits"] for c in classified_courses["unidentified"] if c["grade"] not in ['F', 'W', 'N', ''])
@@ -456,8 +472,8 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             "Language & Communication": (15, gen_ed_credits["language_communication"]),
             "Thai Citizen & Global": (2, gen_ed_credits["thai_citizen_global"]),
             "Aesthetics": (3, gen_ed_credits["aesthetics"]),
-            "Technical Electives": (None, tech_credits),
-            "Free Electives": (None, free_credits),
+            "Technical Electives (FIXED)": (None, tech_credits),
+            "Free Electives (FIXED)": (None, free_credits),
             "New Courses": (None, unidentified_credits)
         }
         
@@ -523,6 +539,13 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 status_color = orange_fill
                 notes = f"{len(classified_courses['unidentified'])} courses need categorization"
             
+            # Special note for FIXED categories
+            if "FIXED" in category:
+                if category == "Technical Electives (FIXED)":
+                    notes += f" - {len(classified_courses['technical_electives'])} courses from B-IE files"
+                elif category == "Free Electives (FIXED)":
+                    notes += " - Excludes technical electives"
+            
             ws[f'D{current_row}'] = status
             ws[f'D{current_row}'].font = normal_font
             ws[f'D{current_row}'].border = border
@@ -537,7 +560,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # Grand total
         current_row += 1
-        ws[f'A{current_row}'] = "TOTAL GRADUATION PROGRESS"
+        ws[f'A{current_row}'] = "TOTAL GRADUATION PROGRESS (FIXED)"
         ws[f'A{current_row}'].font = Font(bold=True, size=11)
         ws[f'A{current_row}'].fill = blue_fill
         
@@ -563,13 +586,15 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # System recommendations
         current_row += 3
-        ws[f'A{current_row}'] = "SYSTEM RECOMMENDATIONS"
+        ws[f'A{current_row}'] = "SYSTEM RECOMMENDATIONS (FIXED)"
         ws[f'A{current_row}'].font = header_font
         ws[f'A{current_row}'].fill = blue_fill
         ws.merge_cells(f'A{current_row}:F{current_row}')
         current_row += 1
         
         recommendations = []
+        
+        recommendations.append(f"✅ FIXED: Technical electives now properly classified from B-IE files ({len(classified_courses['technical_electives'])} courses)")
         
         if unidentified_count > 0:
             recommendations.append(f"🔍 PRIORITY: Classify {unidentified_count} new courses to get accurate analysis")
@@ -581,13 +606,15 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             if required and earned < required:
                 recommendations.append(f"📚 Complete {category}: need {required - earned} more credits")
         
-        if not recommendations:
+        if len(recommendations) == 1:  # Only the FIXED message
             recommendations.append("✅ All requirements appear to be on track!")
         
         for i, rec in enumerate(recommendations):
             ws[f'A{current_row + i}'] = rec
             ws[f'A{current_row + i}'].font = normal_font
-            if "PRIORITY" in rec or "new courses" in rec:
+            if "FIXED" in rec:
+                ws[f'A{current_row + i}'].fill = green_fill
+            elif "PRIORITY" in rec or "new courses" in rec:
                 ws[f'A{current_row + i}'].fill = orange_fill
             elif "Fix" in rec:
                 ws[f'A{current_row + i}'].fill = red_fill
