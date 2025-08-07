@@ -340,11 +340,11 @@ def main():
                 st.session_state.unidentified_count = len(unidentified_courses)
                 
                 if unidentified_courses:
-                    st.warning(f"⚠️ **Database Update Needed:** {len(unidentified_courses)} unidentified courses found")
-                    with st.expander("🔍 Unidentified Courses - Require Classification", expanded=True):
-                        for course in unidentified_courses:
-                            st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
-                        st.info("💡 These courses need to be added to the course classification system for accurate analysis.")
+					st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
+					with st.expander("🔍 New Courses - Require Classification", expanded=True):
+						for course in unidentified_courses:
+							st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
+						st.info("💡 These courses are not yet in our classification system and would benefit from being added for more accurate analysis.")
                 
                 # Show credit summary
                 credit_summary = calculate_credit_summary(
@@ -371,7 +371,7 @@ def main():
                     with col_cr3:
                         st.metric("Technical Electives", f"{credit_summary.get('technical_electives', 0)}", help="Variable requirement")
                         st.metric("Free Electives", f"{credit_summary.get('free_electives', 0)}", help="Variable requirement")
-                        st.metric("Unidentified", f"{credit_summary.get('unidentified', 0)}", help="Need classification", delta_color="off")
+                        st.metric("Unidentified", f"{credit_summary.get('unidentified', 0)}", help="Courses needing classification", delta_color="off")
             
             # Visualization Options - FIXED SECTION
             st.divider()
@@ -608,10 +608,10 @@ def main():
     col_status1, col_status2, col_status3 = st.columns([2, 2, 1])
     
     with col_status1:
-        if st.session_state.unidentified_count > 0:
-            st.warning(f"⚠️ Database maintenance needed: {st.session_state.unidentified_count} unidentified courses")
-        elif st.session_state.processing_complete:
-            st.success("✅ All courses successfully classified")
+		if st.session_state.unidentified_count > 0:
+			st.info(f"🔍 Database expansion opportunity: {st.session_state.unidentified_count} new courses found")
+		elif st.session_state.processing_complete:
+			st.success("✅ All courses successfully classified")
     
     with col_status2:
         if st.session_state.processing_complete:
@@ -628,5 +628,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
