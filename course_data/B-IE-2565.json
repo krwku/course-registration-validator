@@ -16,7 +16,8 @@
       "prerequisites": [
         "01417267"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206223",
@@ -143,7 +144,8 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206381",
@@ -168,7 +170,8 @@
       "name": "Co-operative Education Preparation for Engineers",
       "credits": "1(1-0-2)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206399",
@@ -184,7 +187,8 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206412",
@@ -193,7 +197,8 @@
       "prerequisites": [
         "01206311"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206413",
@@ -202,7 +207,8 @@
       "prerequisites": [
         "01206311"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206414",
@@ -211,21 +217,24 @@
       "prerequisites": [
         "01206311"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206415",
       "name": "Industrial Virtual Digital Manufacturing and IoT Systems",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206416",
       "name": "Product and Process Development",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206421",
@@ -234,14 +243,16 @@
       "prerequisites": [
         "01206321"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206422",
       "name": "Industrial Quality Assurance",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206423",
@@ -250,7 +261,8 @@
       "prerequisites": [
         "01206223"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206424",
@@ -259,7 +271,8 @@
       "prerequisites": [
         "01206322"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206425",
@@ -269,7 +282,8 @@
         "01204111",
         "01206224"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206426",
@@ -278,7 +292,8 @@
       "prerequisites": [
         "01206425"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206427",
@@ -287,14 +302,16 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206431",
       "name": "Industrial Management",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206432",
@@ -303,14 +320,16 @@
       "prerequisites": [
         "01206361"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206433",
       "name": "Collaborative Communication and Effective Leadership",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206441",
@@ -320,7 +339,8 @@
         "01206221",
         "01206251"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206442",
@@ -329,7 +349,8 @@
       "prerequisites": [
         "01206341"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206443",
@@ -338,7 +359,8 @@
       "prerequisites": [
         "01206341"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206444",
@@ -347,7 +369,8 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206445",
@@ -356,7 +379,8 @@
       "prerequisites": [
         "01206321"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206446",
@@ -365,7 +389,8 @@
       "prerequisites": [
         "01206311"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206447",
@@ -374,7 +399,8 @@
       "prerequisites": [
         "01206341"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206448",
@@ -383,14 +409,16 @@
       "prerequisites": [
         "01206341"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206451",
       "name": "Industrial and Commercial Laws",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206452",
@@ -408,7 +436,8 @@
       "prerequisites": [
         "01206251"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206461",
@@ -417,7 +446,8 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206462",
@@ -426,7 +456,8 @@
       "prerequisites": [
         "01206321"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206463",
@@ -436,7 +467,8 @@
         "01206342",
         "01206361"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206464",
@@ -445,21 +477,24 @@
       "prerequisites": [
         "01206321"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206465",
       "name": "Engineering Project Management",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206466",
       "name": "E-Commerce and Marketing Analytics for Industrial Engineers",
       "credits": "3(3-0-6)",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206467",
@@ -468,7 +503,8 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206471",
@@ -477,14 +513,16 @@
       "prerequisites": [
         "01206221"
       ],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206490",
       "name": "Co-operative Education",
       "credits": "6",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206495",
@@ -498,7 +536,8 @@
       "name": "Selected Topics in Industrial Engineering",
       "credits": "1-3",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206497",
@@ -512,7 +551,8 @@
       "name": "Special Problems",
       "credits": "1-3",
       "prerequisites": [],
-      "corequisites": []
+      "corequisites": [],
+      "technical_electives": true
     },
     {
       "code": "01206499",
@@ -623,7 +663,9 @@
       "corequisites": [],
       "prerequisite_groups": [
         {
-          "courses": ["01403117"],
+          "courses": [
+            "01403117"
+          ],
           "concurrent_allowed": true
         }
       ]
@@ -675,11 +717,15 @@
       "corequisites": [],
       "prerequisite_groups": [
         {
-          "courses": ["01420111"],
+          "courses": [
+            "01420111"
+          ],
           "concurrent_allowed": true
         },
         {
-          "courses": ["01420117"],
+          "courses": [
+            "01420117"
+          ],
           "concurrent_allowed": true
         }
       ]
