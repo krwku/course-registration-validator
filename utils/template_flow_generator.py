@@ -699,12 +699,12 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
                 <div style="font-size: 12px; color: #7f8c8d;">Core Courses Completed</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">{len(analysis['deviations'])}</div>
-                <div style="font-size: 12px; color: #7f8c8d;">Schedule Deviations</div>
+                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{len(analysis['deviations'])}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">Schedule Variations</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{unidentified_count}</div>
-                <div style="font-size: 12px; color: #7f8c8d;">Unidentified Courses</div>
+                <div style="font-size: 12px; color: #7f8c8d;">New Courses</div>
             </div>
         </div>
     </div>
