@@ -9,65 +9,105 @@ def load_comprehensive_course_data():
     available_files = {}
     
     if course_data_dir.exists():
-        # Priority order for course files
-        course_files = [
-            ("B-IE-2565.json", "Industrial Engineering 2565 (2022-2026)"),
-            ("B-IE-2560.json", "Industrial Engineering 2560 (2017-2021)"),
-            ("ie_core_courses.json", "IE Core Courses"),
-            ("gen_ed_courses.json", "General Education Courses"),
-            ("technical_electives.json", "Technical Electives")
-        ]
+        # Files to permanently exclude from the dropdown (support files)
+        excluded_files = {
+            "gen_ed_courses.json",
+            "ie_core_courses.json", 
+            "technical_electives.json"
+        }
         
-        for filename, display_name in course_files:
-            json_file = course_data_dir / filename
-            if json_file.exists():
-                try:
-                    with open(json_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                    
-                    # Validate that the file contains course data
-                    has_courses = (
-                        'industrial_engineering_courses' in data or
-                        'gen_ed_courses' in data or
-                        'technical_electives' in data or
-                        'other_related_courses' in data
-                    )
-                    
-                    if has_courses:
-                        available_files[display_name] = {
-                            'data': data,
-                            'filename': filename,
-                            'path': str(json_file)
-                        }
-                except Exception as e:
-                    print(f"Error loading {filename}: {e}")
-                    continue
+        # Scan for all JSON files and categorize them
+        curriculum_files = []
+        other_files = []
         
-        # Also scan for any other JSON files
         for json_file in course_data_dir.glob("*.json"):
-            if json_file.name not in [f[0] for f in course_files]:
-                try:
-                    with open(json_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
+            # Skip excluded support files
+            if json_file.name in excluded_files:
+                continue
+            
+            # Check if it's a B-IE curriculum file
+            if json_file.name.startswith("B-IE-") and json_file.name.endswith(".json"):
+                curriculum_files.append(json_file)
+            else:
+                other_files.append(json_file)
+        
+        # Sort curriculum files by year (newest first)
+        def extract_year(filename):
+            """Extract year from B-IE-XXXX.json format"""
+            try:
+                # Extract the 4-digit year from B-IE-XXXX.json
+                stem = filename.stem  # Gets "B-IE-XXXX"
+                year_part = stem.split("-")[-1]  # Gets "XXXX"
+                return int(year_part) if year_part.isdigit() else 0
+            except:
+                return 0
+        
+        curriculum_files.sort(key=extract_year, reverse=True)
+        
+        # Process curriculum files (B-IE-XXXX.json)
+        for json_file in curriculum_files:
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Validate that the file contains course data
+                has_courses = (
+                    'industrial_engineering_courses' in data or
+                    'gen_ed_courses' in data or
+                    'technical_electives' in data or
+                    'other_related_courses' in data
+                )
+                
+                if has_courses:
+                    # Create clean display name: B-IE-2565.json -> B-IE-2565
+                    display_name = json_file.stem
                     
-                    # Create display name from filename
+                    available_files[display_name] = {
+                        'data': data,
+                        'filename': json_file.name,
+                        'path': str(json_file)
+                    }
+            except Exception as e:
+                print(f"Error loading {json_file.name}: {e}")
+                continue
+        
+        # Process other valid JSON files (non-curriculum files)
+        for json_file in other_files:
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Validate that the file contains course data
+                has_courses = (
+                    'industrial_engineering_courses' in data or
+                    'gen_ed_courses' in data or
+                    'technical_electives' in data or
+                    'other_related_courses' in data
+                )
+                
+                if has_courses:
+                    # Create a clean display name for other files
                     file_name = json_file.stem
-                    if "2560" in file_name:
-                        display_name = "Course Data 2560 (Legacy)"
-                    elif "2565" in file_name:
-                        display_name = "Course Data 2565 (Current)"
-                    else:
-                        display_name = file_name.replace("_", " ").title()
+                    display_name = file_name.replace("_", "-").replace("-courses", "").upper()
                     
-                    # Check if it's not already added
-                    if display_name not in available_files:
-                        available_files[display_name] = {
-                            'data': data,
-                            'filename': json_file.name,
-                            'path': str(json_file)
-                        }
-                except Exception as e:
-                    print(f"Error loading {json_file.name}: {e}")
+                    # Limit length for readability
+                    if len(display_name) > 20:
+                        display_name = display_name[:17] + "..."
+                    
+                    # Ensure uniqueness
+                    original_display_name = display_name
+                    counter = 1
+                    while display_name in available_files:
+                        display_name = f"{original_display_name}-{counter}"
+                        counter += 1
+                    
+                    available_files[display_name] = {
+                        'data': data,
+                        'filename': json_file.name,
+                        'path': str(json_file)
+                    }
+            except Exception as e:
+                print(f"Error loading {json_file.name}: {e}")
     
     return available_files
 
