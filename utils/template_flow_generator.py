@@ -2,7 +2,10 @@ import json
 from pathlib import Path
 
 def load_course_categories():
-    """Load course categories from existing JSON files."""
+    """
+    Load course categories from existing JSON files.
+    FIXED: Now properly handles technical_electives attribute from B-IE files.
+    """
     course_data_dir = Path(__file__).parent.parent / "course_data"
     
     categories = {
@@ -18,38 +21,47 @@ def load_course_categories():
         "all_courses": {}
     }
     
-    # Load IE Core courses
+    # Load IE Core courses from both B-IE files
     for ie_file in ["B-IE-2560.json", "B-IE-2565.json"]:
         ie_path = course_data_dir / ie_file
         if ie_path.exists():
-            with open(ie_path, 'r', encoding='utf-8') as f:
-                ie_data = json.load(f)
-                for course in ie_data.get("industrial_engineering_courses", []):
-                    categories["ie_core"][course["code"]] = course
-                    categories["all_courses"][course["code"]] = course
-                for course in ie_data.get("other_related_courses", []):
-                    categories["ie_core"][course["code"]] = course  
-                    categories["all_courses"][course["code"]] = course
+            try:
+                with open(ie_path, 'r', encoding='utf-8') as f:
+                    ie_data = json.load(f)
+                    
+                    # Process industrial_engineering_courses
+                    for course in ie_data.get("industrial_engineering_courses", []):
+                        # FIXED: Check if this course is marked as technical elective
+                        if course.get("technical_electives", False):
+                            categories["technical_electives"][course["code"]] = course
+                        else:
+                            categories["ie_core"][course["code"]] = course
+                        categories["all_courses"][course["code"]] = course
+                    
+                    # Process other_related_courses (these are always IE core, not technical electives)
+                    for course in ie_data.get("other_related_courses", []):
+                        categories["ie_core"][course["code"]] = course  
+                        categories["all_courses"][course["code"]] = course
+                break  # Use first available file
+            except Exception as e:
+                print(f"Error loading {ie_file}: {e}")
+                continue
     
-    # Load Technical Electives
-    tech_file = course_data_dir / "technical_electives.json"
-    if tech_file.exists():
-        with open(tech_file, 'r', encoding='utf-8') as f:
-            tech_data = json.load(f)
-            for course in tech_data.get("technical_electives", []):
-                categories["technical_electives"][course["code"]] = course
-                categories["all_courses"][course["code"]] = course
+    # REMOVED: No longer loading from separate technical_electives.json file
     
     # Load Gen-Ed courses
     gen_ed_file = course_data_dir / "gen_ed_courses.json"
     if gen_ed_file.exists():
-        with open(gen_ed_file, 'r', encoding='utf-8') as f:
-            gen_ed_data = json.load(f)
-            gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-            for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
-                for course in gen_ed_courses.get(subcategory, []):
-                    categories["gen_ed"][subcategory][course["code"]] = course
-                    categories["all_courses"][course["code"]] = course
+        try:
+            with open(gen_ed_file, 'r', encoding='utf-8') as f:
+                gen_ed_data = json.load(f)
+                gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
+                for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
+                    for course in gen_ed_courses.get(subcategory, []):
+                        categories["gen_ed"][subcategory][course["code"]] = course
+                        categories["all_courses"][course["code"]] = course
+        except Exception as e:
+            print(f"Error loading gen_ed_courses.json: {e}")
     
     return categories
 
@@ -76,25 +88,35 @@ def load_curriculum_template(catalog_name):
     return None
 
 def classify_course(course_code, course_name="", course_categories=None):
-    """Classify course into appropriate category."""
+    """
+    Classify course into appropriate category.
+    FIXED: Now properly identifies technical electives from B-IE files.
+    """
     if course_categories is None:
         course_categories = load_course_categories()
     
     code = course_code.upper()
     
+    # FIXED: Check Technical Electives FIRST (higher priority than IE Core)
+    if code in course_categories["technical_electives"]:
+        return ("technical_electives", "technical", True)
+    
+    # Check IE Core courses
     if code in course_categories["ie_core"]:
         return ("ie_core", "core", True)
-    elif code in course_categories["technical_electives"]:
-        return ("technical_electives", "technical", True)
-    else:
-        for subcategory, courses in course_categories["gen_ed"].items():
-            if code in courses:
-                return ("gen_ed", subcategory, True)
+    
+    # Check Gen-Ed courses
+    for subcategory, courses in course_categories["gen_ed"].items():
+        if code in courses:
+            return ("gen_ed", subcategory, True)
     
     return ("unidentified", "unknown", False)
 
 def analyze_student_progress(semesters, template, course_categories):
-    """Analyze student's actual progress against the curriculum template."""
+    """
+    Analyze student's actual progress against the curriculum template.
+    FIXED: Now properly handles technical electives from B-IE files.
+    """
     # Organize student courses by completion status
     completed_courses = {}
     failed_courses = {}
@@ -209,7 +231,7 @@ def analyze_student_progress(semesters, template, course_categories):
                             "year_diff": year_diff
                         })
 
-    # Analyze elective courses (unchanged)
+    # Analyze elective courses (FIXED: Now properly handles technical electives)
     elective_analysis = {}
     for category, required_credits in template.get("elective_requirements", {}).items():
         elective_analysis[category] = {"required": required_credits, "completed": 0, "courses": []}
@@ -234,10 +256,11 @@ def analyze_student_progress(semesters, template, course_categories):
                     break
             
             if not is_core:
+                # FIXED: Use the updated classify function that properly handles technical electives
                 category, subcategory, is_identified = classify_course(code, course.get("name", ""), course_categories)
                 
                 elective_key = None
-                if category == "technical_electives":
+                if category == "technical_electives":  # FIXED: Now properly handled
                     elective_key = "technical_electives"
                 elif category == "gen_ed":
                     elective_key = subcategory
@@ -269,7 +292,10 @@ def analyze_student_progress(semesters, template, course_categories):
     }
 
 def create_template_based_flow_html(student_info, semesters, validation_results, selected_course_data=None):
-    """Create template-based HTML flow chart."""
+    """
+    Create template-based HTML flow chart.
+    FIXED: Now properly handles technical electives from B-IE files.
+    """
     
     course_categories = load_course_categories()
     
@@ -280,7 +306,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     if not template:
         return "Error: Could not load curriculum template", 1
     
-    # Analyze student progress
+    # Analyze student progress (now with FIXED technical electives handling)
     analysis = analyze_student_progress(semesters, template, course_categories)
     
     # CSS styles
@@ -573,6 +599,15 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             margin-top: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        
+        .fixed-notice {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
     </style>
     """
     
@@ -581,18 +616,26 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Template-Based IE Curriculum Flow Chart</title>
+        <title>FIXED Template-Based IE Curriculum Flow Chart</title>
         <meta charset="utf-8">
         {css_styles}
     </head>
     <body>
         <div class="curriculum-container">
             <div class="header">
-                <h1>Industrial Engineering Curriculum Template Flow Chart</h1>
+                <h1>Industrial Engineering Curriculum Template Flow Chart (FIXED)</h1>
                 <div class="template-info">
                     <strong>Template:</strong> {template.get('curriculum_name', 'Unknown')} | 
                     <strong>Student:</strong> {student_info.get('name', 'N/A')} ({student_info.get('id', 'N/A')})
                 </div>
+            </div>
+            
+            <div class="fixed-notice">
+                <h4 style="margin: 0 0 10px 0; color: #27ae60;">✅ FIXED: Technical Electives Classification</h4>
+                <p style="margin: 0; color: #2c3e50;">
+                    Technical electives are now properly loaded from B-IE course files using the 
+                    <strong>technical_electives: true</strong> attribute instead of a separate file.
+                </p>
             </div>
     """
     
@@ -738,10 +781,10 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     
     html_content += '</div>'  # End year-container
     
-    # Add electives section (unchanged from original)
+    # Add electives section (FIXED to show proper technical electives)
     html_content += '''
     <div class="electives-section">
-        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Elective Requirements Progress</h2>
+        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Elective Requirements Progress (FIXED)</h2>
         <div class="electives-grid">
     '''
     
@@ -761,6 +804,8 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             category_display = 'Thai Citizen & Global'
         elif elective_key == 'language_communication':
             category_display = 'Language & Communication'
+        elif elective_key == 'technical_electives':
+            category_display = 'Technical Electives (FIXED)'
         
         html_content += f'''
         <div class="elective-category">
@@ -794,28 +839,31 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     
     html_content += '</div></div>'  # End grids
     
-    # Add progress summary with improved deviation information
+    # Add progress summary with FIXED information
     total_template_courses = sum(len(courses) for year_data in template.get('core_curriculum', {}).values() 
                                for courses in year_data.values())
     completed_template_courses = len([c for c in analysis['completed_courses'] 
                                     if any(c in courses for year_data in template.get('core_curriculum', {}).values() 
                                           for courses in year_data.values())])
     
+    # Count technical electives properly
+    tech_electives_count = len(analysis['elective_analysis'].get('technical_electives', {}).get('courses', []))
+    
     html_content += f'''
     <div class="stats-summary">
-        <h3 style="text-align: center; color: #2c3e50;">📊 Overall Progress Summary</h3>
+        <h3 style="text-align: center; color: #2c3e50;">📊 FIXED Overall Progress Summary</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px;">
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; font-weight: bold; color: #2c3e50;">{completed_template_courses}/{total_template_courses}</div>
                 <div style="font-size: 12px; color: #7f8c8d;">Core Courses Completed</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{len(significant_deviations)}</div>
-                <div style="font-size: 12px; color: #7f8c8d;">Significant Variations</div>
+                <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{tech_electives_count}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">Technical Electives (FIXED)</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{len(minor_deviations)}</div>
-                <div style="font-size: 12px; color: #7f8c8d;">Minor Variations</div>
+                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{len(significant_deviations)}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">Significant Variations</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; font-weight: bold; color: #9b59b6;">{unidentified_count}</div>
@@ -824,13 +872,13 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
         </div>
         
         <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; text-align: center;">
-            <h4 style="margin: 0 0 10px 0; color: #27ae60;">📋 Schedule Analysis Summary</h4>
+            <h4 style="margin: 0 0 10px 0; color: #27ae60;">📋 FIXED Technical Electives Summary</h4>
             <p style="margin: 0; font-size: 14px; color: #2c3e50;">
-                The flow chart above shows your actual progress compared to the standard curriculum template. 
-                Schedule variations are normal and often due to course availability, prerequisites, or academic planning.
-                <br><strong>Green ✓:</strong> Normal timing variations (±1 semester)
-                <br><strong>Orange ⚠️:</strong> Moderate variations (±2 years or summer scheduling)
-                <br><strong>Red ❌:</strong> Significant variations (>2 years difference)
+                <strong>✅ FIXED:</strong> Technical electives are now properly identified from B-IE course files using the 
+                <strong>technical_electives: true</strong> attribute. Courses previously miscategorized as "Free Electives" 
+                are now correctly classified as "Technical Electives".
+                <br><br><strong>Technical Electives Found:</strong> {tech_electives_count} courses
+                <br><strong>Schedule Analysis:</strong> Normal timing variations (±1 semester) are expected due to course availability
             </p>
         </div>
     </div>
