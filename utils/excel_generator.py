@@ -245,7 +245,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             current_row += 1
             
             if unidentified_count > 0:
-                ws[f'A{current_row}'] = f"🔍 DATABASE UPDATE NEEDED: {unidentified_count} unidentified courses found"
+                ws[f'A{current_row}'] = f"🔍 DATABASE EXPANSION NEEDED: {unidentified_count} new courses found"
                 ws[f'A{current_row}'].fill = orange_fill
                 ws[f'A{current_row}'].font = Font(bold=True)
                 ws.merge_cells(f'A{current_row}:P{current_row}')
@@ -333,7 +333,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 row_color = None
                 
                 if not course["is_identified"]:
-                    status_text = "UNIDENTIFIED - DB UPDATE NEEDED"
+                    status_text = "NEW COURSE - NEEDS CLASSIFICATION"
                     row_color = orange_fill
                 elif not course["is_valid"]:
                     status_text = f"INVALID: {course['issue']}"
@@ -378,7 +378,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         # UNIDENTIFIED COURSES SECTION (HIGH PRIORITY)
         if classified_courses["unidentified"]:
             current_row = add_category_section(
-                "⚠️ UNIDENTIFIED COURSES - REQUIRES IMMEDIATE DATABASE UPDATE",
+                "🔍 NEW COURSES - REQUIRE DATABASE EXPANSION",
                 classified_courses["unidentified"],
                 current_row,
                 orange_fill
@@ -458,7 +458,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             "Aesthetics": (3, gen_ed_credits["aesthetics"]),
             "Technical Electives": (None, tech_credits),
             "Free Electives": (None, free_credits),
-            "Unidentified": (None, unidentified_credits)
+            "New Courses": (None, unidentified_credits)
         }
         
         # Summary headers
@@ -518,7 +518,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                     status = "No courses"
             
             # Special handling for unidentified
-            if category == "Unidentified" and earned > 0:
+            if category == "New Courses" and earned > 0:
                 status = "⚠️ NEEDS CLASSIFICATION"
                 status_color = orange_fill
                 notes = f"{len(classified_courses['unidentified'])} courses need categorization"
@@ -547,7 +547,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         ws[f'B{current_row}'].font = Font(bold=True)
         ws[f'B{current_row}'].fill = blue_fill
         
-        ws[f'C{current_row}'] = f"{total_with_unidentified} ({total_earned} + {unidentified_credits} unidentified)"
+        ws[f'C{current_row}'] = f"{total_with_unidentified} ({total_earned} + {unidentified_credits} new)"
         ws[f'C{current_row}'].font = Font(bold=True)
         ws[f'C{current_row}'].fill = blue_fill
         
@@ -572,7 +572,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         recommendations = []
         
         if unidentified_count > 0:
-            recommendations.append(f"🔍 PRIORITY: Classify {unidentified_count} unidentified courses to get accurate analysis")
+            recommendations.append(f"🔍 PRIORITY: Classify {unidentified_count} new courses to get accurate analysis")
         
         if validation_issues_count > 0:
             recommendations.append(f"❌ Fix {validation_issues_count} prerequisite issues")
@@ -587,7 +587,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         for i, rec in enumerate(recommendations):
             ws[f'A{current_row + i}'] = rec
             ws[f'A{current_row + i}'].font = normal_font
-            if "PRIORITY" in rec or "unidentified" in rec:
+            if "PRIORITY" in rec or "new courses" in rec:
                 ws[f'A{current_row + i}'].fill = orange_fill
             elif "Fix" in rec:
                 ws[f'A{current_row + i}'].fill = red_fill
