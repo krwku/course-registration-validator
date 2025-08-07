@@ -101,17 +101,32 @@ def analyze_student_progress(semesters, template, course_categories):
     withdrawn_courses = {}
     current_courses = {}
     
+    # Find the earliest academic year to establish baseline
+    earliest_year = None
+    for semester in semesters:
+        year = semester.get("year_int", 0)
+        if year and year > 1900:  # Valid calendar year
+            if earliest_year is None or year < earliest_year:
+                earliest_year = year
+    
     for semester in semesters:
         for course in semester.get("courses", []):
             code = course.get("code", "")
             grade = course.get("grade", "")
+            
+            # Convert calendar year to academic year (relative to enrollment)
+            calendar_year = semester.get("year_int", 0)
+            academic_year = 1  # Default to year 1
+            if earliest_year and calendar_year and calendar_year > 1900:
+                academic_year = calendar_year - earliest_year + 1
             
             if grade in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
                 completed_courses[code] = {
                     "grade": grade,
                     "semester": semester.get("semester", ""),
                     "credits": course.get("credits", 0),
-                    "year": semester.get("year_int", 0),
+                    "calendar_year": calendar_year,
+                    "academic_year": academic_year,
                     "semester_type": semester.get("semester_type", "")
                 }
             elif grade == "F":
@@ -121,7 +136,7 @@ def analyze_student_progress(semesters, template, course_categories):
             elif grade in ["N", ""]:
                 current_courses[code] = {"grade": grade, "semester": semester.get("semester", "")}
     
-    # Analyze deviations from template
+    # Analyze deviations from template (using academic years now)
     deviations = []
     
     for year_key, year_data in template.get("core_curriculum", {}).items():
@@ -132,17 +147,23 @@ def analyze_student_progress(semesters, template, course_categories):
             
             for course_code in course_codes:
                 if course_code in completed_courses:
-                    actual_year = completed_courses[course_code]["year"]
+                    actual_academic_year = completed_courses[course_code]["academic_year"]
+                    actual_calendar_year = completed_courses[course_code]["calendar_year"]
                     actual_semester = completed_courses[course_code]["semester_type"]
                     
-                    if actual_year != expected_year or actual_semester != expected_semester:
+                    # Only flag as deviation if there's a significant difference
+                    year_diff = abs(actual_academic_year - expected_year)
+                    semester_different = actual_semester != expected_semester
+                    
+                    # Only create deviation if year is off by more than 1 OR semester is different in same year
+                    if year_diff > 1 or (year_diff == 1 and semester_different) or (year_diff == 0 and semester_different):
                         deviations.append({
                             "course_code": course_code,
                             "expected": f"Year {expected_year} {expected_semester}",
-                            "actual": f"Year {actual_year} {actual_semester}",
-                            "severity": "moderate" if abs(actual_year - expected_year) <= 1 else "high"
+                            "actual": f"{actual_calendar_year} {actual_semester} (Academic Year {actual_academic_year})",
+                            "severity": "moderate" if year_diff <= 2 else "high"
                         })
-    
+
     # Analyze elective courses
     elective_analysis = {}
     for category, required_credits in template.get("elective_requirements", {}).items():
