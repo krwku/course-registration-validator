@@ -488,14 +488,14 @@ def main():
                             st.warning(f"⚠️ {flow_unidentified} unidentified")
                     else:
                         # Generate flow chart for download if not already generated
-						from utils.template_flow_generator import create_template_based_flow_html
+                        from utils.template_flow_generator import create_template_based_flow_html
 
-						flow_html, flow_unidentified = create_template_based_flow_html(
-							st.session_state.student_info,
-							st.session_state.semesters,
-							st.session_state.validation_results,
-							st.session_state.selected_course_data
-						)
+                        flow_html, flow_unidentified = create_template_based_flow_html(
+                            st.session_state.student_info,
+                            st.session_state.semesters,
+                            st.session_state.validation_results,
+                            st.session_state.selected_course_data
+                        )
                         
                         st.download_button(
                             label="🗂️ Flow Chart (HTML)",
