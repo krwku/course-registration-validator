@@ -5,7 +5,13 @@ from pathlib import Path
 import tempfile
 import os
 import traceback
+import importlib
+import sys
 
+# Force reload the course data loader module
+if 'utils.course_data_loader' in sys.modules:
+    importlib.reload(sys.modules['utils.course_data_loader'])
+	
 # Add modules to path
 sys.path.append(str(Path(__file__).parent))
 
@@ -622,4 +628,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
