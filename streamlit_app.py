@@ -11,7 +11,7 @@ import sys
 # Force reload the course data loader module
 if 'utils.course_data_loader' in sys.modules:
     importlib.reload(sys.modules['utils.course_data_loader'])
-	
+    
 # Add modules to path
 sys.path.append(str(Path(__file__).parent))
 
@@ -339,12 +339,12 @@ def main():
                 )
                 st.session_state.unidentified_count = len(unidentified_courses)
                 
-		if unidentified_courses:
-			st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
-			with st.expander("🔍 New Courses - Require Classification", expanded=True):
-				for course in unidentified_courses:
-					st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
-				st.info("💡 These courses are not yet in our classification system and would benefit from being added for more accurate analysis.")
+                if unidentified_courses:
+                    st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
+                    with st.expander("🔍 New Courses - Require Classification", expanded=True):
+                        for course in unidentified_courses:
+                            st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
+                        st.info("💡 These courses are not yet in our classification system and would benefit from being added for more accurate analysis.")
                 
                 # Show credit summary
                 credit_summary = calculate_credit_summary(
@@ -377,7 +377,7 @@ def main():
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
-			# Generate flow chart - AUTO-OPEN IN NEW WINDOW
+            # Generate flow chart - AUTO-OPEN IN NEW WINDOW
             try:
                 with st.spinner("Generating template-based curriculum flow chart..."):
                     from utils.template_flow_generator import create_template_based_flow_html
@@ -608,10 +608,10 @@ def main():
     col_status1, col_status2, col_status3 = st.columns([2, 2, 1])
     
     with col_status1:
-		if st.session_state.unidentified_count > 0:
-			st.info(f"🔍 Database expansion opportunity: {st.session_state.unidentified_count} new courses found")
-		elif st.session_state.processing_complete:
-			st.success("✅ All courses successfully classified")
+        if st.session_state.unidentified_count > 0:
+            st.info(f"🔍 Database expansion opportunity: {st.session_state.unidentified_count} new courses found")
+        elif st.session_state.processing_complete:
+            st.success("✅ All courses successfully classified")
     
     with col_status2:
         if st.session_state.processing_complete:
@@ -628,6 +628,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
