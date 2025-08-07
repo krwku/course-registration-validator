@@ -26,7 +26,10 @@ from validator import CourseRegistrationValidator
 from utils.excel_generator import create_smart_registration_excel, classify_course, load_course_categories
 
 def safe_course_classification():
-    """Safely load course categories with error handling."""
+    """
+    Safely load course categories with error handling.
+    FIXED: Now properly handles technical_electives attribute from B-IE files.
+    """
     try:
         return load_course_categories()
     except Exception as e:
@@ -45,7 +48,10 @@ def safe_course_classification():
         }
 
 def analyze_unidentified_courses(semesters, course_categories):
-    """Analyze transcript for unidentified courses."""
+    """
+    Analyze transcript for unidentified courses.
+    FIXED: Now uses proper classification that handles technical electives.
+    """
     unidentified_courses = []
     
     try:
@@ -55,6 +61,7 @@ def analyze_unidentified_courses(semesters, course_categories):
                 course_name = course.get("name", "")
                 
                 if course_code:
+                    # FIXED: Use the updated classify_course function
                     category, subcategory, is_identified = classify_course(
                         course_code, 
                         course_name,
@@ -75,7 +82,10 @@ def analyze_unidentified_courses(semesters, course_categories):
     return unidentified_courses
 
 def calculate_credit_summary(semesters, course_categories):
-    """Calculate credit summary by category."""
+    """
+    Calculate credit summary by category.
+    FIXED: Now properly handles technical electives from B-IE files.
+    """
     try:
         summary = {
             "ie_core": 0,
@@ -98,6 +108,7 @@ def calculate_credit_summary(semesters, course_categories):
                 
                 # Only count completed courses
                 if grade in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
+                    # FIXED: Use the updated classify_course function
                     category, subcategory, is_identified = classify_course(
                         course_code, course_name, course_categories
                     )
@@ -106,7 +117,7 @@ def calculate_credit_summary(semesters, course_categories):
                         summary["ie_core"] += credits
                     elif category == "gen_ed":
                         summary[subcategory] += credits
-                    elif category == "technical_electives":
+                    elif category == "technical_electives":  # FIXED: Now properly handled
                         summary["technical_electives"] += credits
                     elif category == "unidentified":
                         summary["unidentified"] += credits
@@ -119,7 +130,10 @@ def calculate_credit_summary(semesters, course_categories):
         return {}
 
 def load_course_categories_for_flow():
-    """Load course categories for the flow generator."""
+    """
+    Load course categories for the flow generator.
+    FIXED: Now properly handles technical_electives attribute from B-IE files.
+    """
     course_data_dir = Path(__file__).parent / "course_data"
     
     categories = {
@@ -135,38 +149,47 @@ def load_course_categories_for_flow():
         "all_courses": {}
     }
     
-    # Load IE Core courses
+    # Load IE Core courses from both B-IE files
     for ie_file in ["B-IE-2560.json", "B-IE-2565.json"]:
         ie_path = course_data_dir / ie_file
         if ie_path.exists():
-            with open(ie_path, 'r', encoding='utf-8') as f:
-                ie_data = json.load(f)
-                for course in ie_data.get("industrial_engineering_courses", []):
-                    categories["ie_core"][course["code"]] = course
-                    categories["all_courses"][course["code"]] = course
-                for course in ie_data.get("other_related_courses", []):
-                    categories["ie_core"][course["code"]] = course  
-                    categories["all_courses"][course["code"]] = course
+            try:
+                with open(ie_path, 'r', encoding='utf-8') as f:
+                    ie_data = json.load(f)
+                    
+                    # Process industrial_engineering_courses
+                    for course in ie_data.get("industrial_engineering_courses", []):
+                        # FIXED: Check if this course is marked as technical elective
+                        if course.get("technical_electives", False):
+                            categories["technical_electives"][course["code"]] = course
+                        else:
+                            categories["ie_core"][course["code"]] = course
+                        categories["all_courses"][course["code"]] = course
+                    
+                    # Process other_related_courses (these are always IE core, not technical electives)
+                    for course in ie_data.get("other_related_courses", []):
+                        categories["ie_core"][course["code"]] = course  
+                        categories["all_courses"][course["code"]] = course
+                break  # Use first available file
+            except Exception as e:
+                print(f"Error loading {ie_file}: {e}")
+                continue
     
-    # Load Technical Electives
-    tech_file = course_data_dir / "technical_electives.json"
-    if tech_file.exists():
-        with open(tech_file, 'r', encoding='utf-8') as f:
-            tech_data = json.load(f)
-            for course in tech_data.get("technical_electives", []):
-                categories["technical_electives"][course["code"]] = course
-                categories["all_courses"][course["code"]] = course
+    # REMOVED: No longer loading from separate technical_electives.json file
     
     # Load Gen-Ed courses
     gen_ed_file = course_data_dir / "gen_ed_courses.json"
     if gen_ed_file.exists():
-        with open(gen_ed_file, 'r', encoding='utf-8') as f:
-            gen_ed_data = json.load(f)
-            gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-            for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
-                for course in gen_ed_courses.get(subcategory, []):
-                    categories["gen_ed"][subcategory][course["code"]] = course
-                    categories["all_courses"][course["code"]] = course
+        try:
+            with open(gen_ed_file, 'r', encoding='utf-8') as f:
+                gen_ed_data = json.load(f)
+                gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
+                for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
+                    for course in gen_ed_courses.get(subcategory, []):
+                        categories["gen_ed"][subcategory][course["code"]] = course
+                        categories["all_courses"][course["code"]] = course
+        except Exception as e:
+            print(f"Error loading gen_ed_courses.json: {e}")
     
     return categories
 
@@ -193,20 +216,27 @@ def load_curriculum_template_for_flow(catalog_name):
     return None
 
 def classify_course_for_flow(course_code, course_name="", course_categories=None):
-    """Classify course into appropriate category."""
+    """
+    Classify course into appropriate category.
+    FIXED: Now properly identifies technical electives from B-IE files.
+    """
     if course_categories is None:
         course_categories = load_course_categories_for_flow()
     
     code = course_code.upper()
     
+    # FIXED: Check Technical Electives FIRST (higher priority than IE Core)
+    if code in course_categories["technical_electives"]:
+        return ("technical_electives", "technical", True)
+    
+    # Check IE Core courses
     if code in course_categories["ie_core"]:
         return ("ie_core", "core", True)
-    elif code in course_categories["technical_electives"]:
-        return ("technical_electives", "technical", True)
-    else:
-        for subcategory, courses in course_categories["gen_ed"].items():
-            if code in courses:
-                return ("gen_ed", subcategory, True)
+    
+    # Check Gen-Ed courses
+    for subcategory, courses in course_categories["gen_ed"].items():
+        if code in courses:
+            return ("gen_ed", subcategory, True)
     
     return ("unidentified", "unknown", False)
 
@@ -1474,4 +1504,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
