@@ -339,7 +339,7 @@ def main():
                 )
                 st.session_state.unidentified_count = len(unidentified_courses)
                 
-                if unidentified_courses:
+		if unidentified_courses:
 			st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
 			with st.expander("🔍 New Courses - Require Classification", expanded=True):
 				for course in unidentified_courses:
@@ -628,5 +628,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
