@@ -24,7 +24,7 @@ def load_course_categories():
     }
     
     # Load IE Core courses from both B-IE files and core files
-    for ie_file in ["B-IE-2565.json", "B-IE-2560.json", "ie_core_courses.json"]:
+    for ie_file in ["B-IE-2565.json", "B-IE-2560.json"]:
         ie_path = course_data_dir / ie_file
         if ie_path.exists():
             try:
