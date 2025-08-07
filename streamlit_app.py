@@ -340,11 +340,11 @@ def main():
                 st.session_state.unidentified_count = len(unidentified_courses)
                 
                 if unidentified_courses:
-					st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
-					with st.expander("🔍 New Courses - Require Classification", expanded=True):
-						for course in unidentified_courses:
-							st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
-						st.info("💡 These courses are not yet in our classification system and would benefit from being added for more accurate analysis.")
+			st.info(f"🔍 **Database Expansion Opportunity:** {len(unidentified_courses)} new courses found")
+			with st.expander("🔍 New Courses - Require Classification", expanded=True):
+				for course in unidentified_courses:
+					st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
+				st.info("💡 These courses are not yet in our classification system and would benefit from being added for more accurate analysis.")
                 
                 # Show credit summary
                 credit_summary = calculate_credit_summary(
@@ -628,4 +628,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
