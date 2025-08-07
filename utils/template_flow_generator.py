@@ -103,22 +103,47 @@ def analyze_student_progress(semesters, template, course_categories):
     
     # Find the earliest academic year to establish baseline
     earliest_year = None
+    semester_years = []
+    
     for semester in semesters:
         year = semester.get("year_int", 0)
         if year and year > 1900:  # Valid calendar year
+            semester_years.append(year)
             if earliest_year is None or year < earliest_year:
                 earliest_year = year
     
+    # Debug information
+    print(f"Debug: Earliest year found: {earliest_year}")
+    print(f"Debug: All semester years: {sorted(set(semester_years))}")
+    
+    # Calculate academic years for each semester
     for semester in semesters:
+        calendar_year = semester.get("year_int", 0)
+        semester_type = semester.get("semester_type", "")
+        
+        # Calculate academic year
+        academic_year = 1  # Default to year 1
+        if earliest_year and calendar_year and calendar_year > 1900:
+            academic_year = calendar_year - earliest_year + 1
+        
+        # Debug information for each semester
+        print(f"Debug: {semester.get('semester', 'Unknown')}: Calendar={calendar_year}, Academic={academic_year}, Type={semester_type}")
+        
         for course in semester.get("courses", []):
             code = course.get("code", "")
             grade = course.get("grade", "")
             
-            # Convert calendar year to academic year (relative to enrollment)
-            calendar_year = semester.get("year_int", 0)
-            academic_year = 1  # Default to year 1
-            if earliest_year and calendar_year and calendar_year > 1900:
-                academic_year = calendar_year - earliest_year + 1
+            # Normalize semester type for comparison
+            normalized_semester_type = semester_type
+            if normalized_semester_type not in ["First", "Second", "Summer"]:
+                # Try to extract from semester name
+                semester_name = semester.get("semester", "").lower()
+                if "first" in semester_name:
+                    normalized_semester_type = "First"
+                elif "second" in semester_name:
+                    normalized_semester_type = "Second" 
+                elif "summer" in semester_name:
+                    normalized_semester_type = "Summer"
             
             if grade in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
                 completed_courses[code] = {
@@ -127,7 +152,8 @@ def analyze_student_progress(semesters, template, course_categories):
                     "credits": course.get("credits", 0),
                     "calendar_year": calendar_year,
                     "academic_year": academic_year,
-                    "semester_type": semester.get("semester_type", "")
+                    "semester_type": normalized_semester_type,
+                    "original_semester_type": semester_type  # Keep original for debugging
                 }
             elif grade == "F":
                 failed_courses[code] = {"grade": grade, "semester": semester.get("semester", "")}
@@ -136,7 +162,7 @@ def analyze_student_progress(semesters, template, course_categories):
             elif grade in ["N", ""]:
                 current_courses[code] = {"grade": grade, "semester": semester.get("semester", "")}
     
-    # Analyze deviations from template (using academic years now)
+    # IMPROVED DEVIATION ANALYSIS - Much more lenient and realistic
     deviations = []
     
     for year_key, year_data in template.get("core_curriculum", {}).items():
@@ -151,20 +177,39 @@ def analyze_student_progress(semesters, template, course_categories):
                     actual_calendar_year = completed_courses[course_code]["calendar_year"]
                     actual_semester = completed_courses[course_code]["semester_type"]
                     
-                    # Only flag as deviation if there's a significant difference
+                    # MUCH MORE LENIENT deviation detection
                     year_diff = abs(actual_academic_year - expected_year)
                     semester_different = actual_semester != expected_semester
                     
-                    # Only create deviation if year is off by more than 1 OR semester is different in same year
-                    if year_diff > 1 or (year_diff == 1 and semester_different) or (year_diff == 0 and semester_different):
+                    # Only flag as significant deviation if:
+                    # 1. Year is off by MORE than 2 years (very unusual)
+                    # 2. OR it's the same year but taken in Summer instead of regular semester
+                    should_flag = False
+                    severity = "low"
+                    
+                    if year_diff > 2:
+                        should_flag = True
+                        severity = "high"
+                    elif year_diff == 2 and semester_different:
+                        should_flag = True 
+                        severity = "moderate"
+                    elif year_diff <= 1 and actual_semester == "Summer" and expected_semester != "Summer":
+                        should_flag = True
+                        severity = "low"
+                    
+                    # Debug information for each course
+                    print(f"Debug: {course_code} - Expected: Year {expected_year} {expected_semester}, Actual: Year {actual_academic_year} {actual_semester}, Diff: {year_diff}, Flag: {should_flag}")
+                    
+                    if should_flag:
                         deviations.append({
                             "course_code": course_code,
                             "expected": f"Year {expected_year} {expected_semester}",
-                            "actual": f"{actual_calendar_year} {actual_semester} (Academic Year {actual_academic_year})",
-                            "severity": "moderate" if year_diff <= 2 else "high"
+                            "actual": f"Year {actual_academic_year} {actual_semester} ({actual_calendar_year})",
+                            "severity": severity,
+                            "year_diff": year_diff
                         })
 
-    # Analyze elective courses
+    # Analyze elective courses (unchanged)
     elective_analysis = {}
     for category, required_credits in template.get("elective_requirements", {}).items():
         elective_analysis[category] = {"required": required_credits, "completed": 0, "courses": []}
@@ -208,6 +253,11 @@ def analyze_student_progress(semesters, template, course_categories):
                         "semester": semester.get("semester", ""),
                         "is_identified": is_identified
                     })
+    
+    # Debug summary
+    print(f"Debug: Total deviations found: {len(deviations)}")
+    for dev in deviations:
+        print(f"Debug: Deviation - {dev['course_code']}: {dev['severity']} ({dev.get('year_diff', 0)} year diff)")
     
     return {
         "completed_courses": completed_courses,
@@ -268,6 +318,12 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             margin-bottom: 20px;
             border-radius: 5px;
             border-left: 4px solid #f39c12;
+        }
+        
+        .deviation-alert.low {
+            background: #e8f5e8;
+            border-color: #27ae60;
+            border-left-color: #27ae60;
         }
         
         .year-container {
@@ -354,13 +410,19 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             border: 3px solid #f39c12 !important;
         }
         
+        .course-deviation.high {
+            border-color: #e74c3c !important;
+        }
+        
+        .course-deviation.low {
+            border-color: #27ae60 !important;
+        }
+        
         .course-deviation::before {
             content: '⚠️';
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #f39c12;
-            color: white;
             border-radius: 50%;
             width: 18px;
             height: 18px;
@@ -368,6 +430,17 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+        }
+        
+        .course-deviation.high::before {
+            background: #e74c3c;
+            content: '❌';
+        }
+        
+        .course-deviation.low::before {
+            background: #27ae60;
+            content: '✓';
         }
         
         .deviation-tooltip {
@@ -376,17 +449,31 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background: #f39c12;
+            background: #2c3e50;
             color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
             white-space: nowrap;
             z-index: 1000;
+            max-width: 300px;
+            white-space: normal;
+            text-align: center;
         }
         
         .course-deviation:hover .deviation-tooltip {
             display: block;
+        }
+        
+        .deviation-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent transparent;
         }
         
         .course-code { font-size: 11px; font-weight: bold; margin-bottom: 4px; }
@@ -509,16 +596,26 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             </div>
     """
     
-    # Add deviation alerts
-    if analysis['deviations']:
+    # Improved deviation alerts with severity-based messaging
+    significant_deviations = [d for d in analysis['deviations'] if d['severity'] in ['moderate', 'high']]
+    minor_deviations = [d for d in analysis['deviations'] if d['severity'] == 'low']
+    
+    if significant_deviations:
         html_content += f"""
         <div class="deviation-alert">
-            <h4>📅 Schedule Variations Detected ({len(analysis['deviations'])} courses)</h4>
-            <p><strong>Note:</strong> Some courses were taken in different semesters than the standard template timeline. This is common and often due to course availability, prerequisites, or academic planning. Hover over courses with ⚠️ for details.</p>
+            <h4>📅 Significant Schedule Variations ({len(significant_deviations)} courses)</h4>
+            <p><strong>Note:</strong> Some courses were taken significantly earlier/later than the standard timeline. This may indicate advanced placement, repeated courses, or alternative academic planning.</p>
+        </div>
+        """
+    elif minor_deviations:
+        html_content += f"""
+        <div class="deviation-alert low">
+            <h4>✅ Minor Schedule Variations ({len(minor_deviations)} courses)</h4>
+            <p><strong>Note:</strong> Some courses were taken in different semesters but within normal timing. This is very common and usually due to course availability or personal scheduling.</p>
         </div>
         """
     
-    # Add legend
+    # Add legend with updated information
     html_content += """
     <div class="legend">
         <div class="legend-item">
@@ -542,8 +639,16 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
             <span>Not Taken</span>
         </div>
         <div class="legend-item">
+            <span style="color: #27ae60; font-weight: bold;">✓</span>
+            <span>Minor Timing Variation</span>
+        </div>
+        <div class="legend-item">
             <span style="color: #f39c12; font-weight: bold;">⚠️</span>
-            <span>Schedule Variation</span>
+            <span>Moderate Variation</span>
+        </div>
+        <div class="legend-item">
+            <span style="color: #e74c3c; font-weight: bold;">❌</span>
+            <span>Significant Variation</span>
         </div>
     </div>
     """
@@ -591,11 +696,17 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
                 status_info = "Not taken"
                 deviation_info = ""
                 
-                # Check for deviations
+                # Check for deviations with improved tooltip
                 deviation = next((d for d in analysis['deviations'] if d['course_code'] == course_code), None)
                 if deviation:
-                    css_class += " course-deviation"
-                    deviation_info = f'<div class="deviation-tooltip">Expected: {deviation["expected"]}<br>Actually taken: {deviation["actual"]}</div>'
+                    css_class += f" course-deviation {deviation['severity']}"
+                    severity_text = {
+                        'low': 'Minor timing variation (normal)',
+                        'moderate': 'Moderate schedule variation', 
+                        'high': 'Significant timing difference'
+                    }.get(deviation['severity'], 'Schedule variation')
+                    
+                    deviation_info = f'<div class="deviation-tooltip">{severity_text}<br>Expected: {deviation["expected"]}<br>Actually taken: {deviation["actual"]}</div>'
                 
                 if course_code in analysis['completed_courses']:
                     css_class += " course-completed"
@@ -627,7 +738,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     
     html_content += '</div>'  # End year-container
     
-    # Add electives section
+    # Add electives section (unchanged from original)
     html_content += '''
     <div class="electives-section">
         <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Elective Requirements Progress</h2>
@@ -683,7 +794,7 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
     
     html_content += '</div></div>'  # End grids
     
-    # Add progress summary
+    # Add progress summary with improved deviation information
     total_template_courses = sum(len(courses) for year_data in template.get('core_curriculum', {}).values() 
                                for courses in year_data.values())
     completed_template_courses = len([c for c in analysis['completed_courses'] 
@@ -699,13 +810,28 @@ def create_template_based_flow_html(student_info, semesters, validation_results,
                 <div style="font-size: 12px; color: #7f8c8d;">Core Courses Completed</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{len(analysis['deviations'])}</div>
-                <div style="font-size: 12px; color: #7f8c8d;">Schedule Variations</div>
+                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{len(significant_deviations)}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">Significant Variations</div>
             </div>
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div style="font-size: 24px; font-weight: bold; color: #f39c12;">{unidentified_count}</div>
+                <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{len(minor_deviations)}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">Minor Variations</div>
+            </div>
+            <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <div style="font-size: 24px; font-weight: bold; color: #9b59b6;">{unidentified_count}</div>
                 <div style="font-size: 12px; color: #7f8c8d;">New Courses</div>
             </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; text-align: center;">
+            <h4 style="margin: 0 0 10px 0; color: #27ae60;">📋 Schedule Analysis Summary</h4>
+            <p style="margin: 0; font-size: 14px; color: #2c3e50;">
+                The flow chart above shows your actual progress compared to the standard curriculum template. 
+                Schedule variations are normal and often due to course availability, prerequisites, or academic planning.
+                <br><strong>Green ✓:</strong> Normal timing variations (±1 semester)
+                <br><strong>Orange ⚠️:</strong> Moderate variations (±2 years or summer scheduling)
+                <br><strong>Red ❌:</strong> Significant variations (>2 years difference)
+            </p>
         </div>
     </div>
     '''
