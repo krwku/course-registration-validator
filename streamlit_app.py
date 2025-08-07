@@ -371,17 +371,17 @@ def main():
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
-            # Generate flow chart - AUTO-OPEN IN NEW WINDOW
+			# Generate flow chart - AUTO-OPEN IN NEW WINDOW
             try:
-				with st.spinner("Generating template-based curriculum flow chart..."):
-					from utils.template_flow_generator import create_template_based_flow_html
-					
-					flow_html, flow_unidentified = create_template_based_flow_html(
-						st.session_state.student_info,
-						st.session_state.semesters,
-						st.session_state.validation_results,
-						st.session_state.selected_course_data  # Pass selected course data
-					)
+                with st.spinner("Generating template-based curriculum flow chart..."):
+                    from utils.template_flow_generator import create_template_based_flow_html
+                    
+                    flow_html, flow_unidentified = create_template_based_flow_html(
+                        st.session_state.student_info,
+                        st.session_state.semesters,
+                        st.session_state.validation_results,
+                        st.session_state.selected_course_data  # Pass selected course data
+                    )
                 
                 st.subheader("🗂️ Template-Based Curriculum Flow Chart")
                 st.markdown("*Shows ideal curriculum template with your actual progress and deviations*")
