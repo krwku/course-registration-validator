@@ -384,10 +384,13 @@ def main():
                 st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
                 if flow_html and len(flow_html.strip()) > 0:
+                    # Escape the backticks in the HTML content for the f-string
+                    escaped_flow_html = flow_html.replace('`', '\\`')
+                    
                     # Automatically open flow chart in new window
                     js_code = f"""
                     <script>
-                    const flowHTML = `{flow_html.replace('`', '\\`')}`;
+                    const flowHTML = `{escaped_flow_html}`;
                     const newWindow = window.open('', '_blank');
                     if (newWindow) {{
                         newWindow.document.write(flowHTML);
@@ -410,7 +413,7 @@ def main():
                         if st.button("🔄 Re-open Flow Chart", help="Click if popup was blocked"):
                             js_reopen = f"""
                             <script>
-                            const flowHTML = `{flow_html.replace('`', '\\`')}`;
+                            const flowHTML = `{escaped_flow_html}`;
                             const newWindow = window.open('', '_blank');
                             newWindow.document.write(flowHTML);
                             newWindow.document.close();
