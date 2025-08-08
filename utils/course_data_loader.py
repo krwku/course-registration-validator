@@ -184,53 +184,6 @@ def get_course_statistics(data):
     
     return stats
 
-def create_unified_course_lookup(data):
-    """
-    Create a unified lookup dictionary from course data.
-    FIXED: Now properly handles technical_electives attribute from B-IE files.
-    """
-    lookup = {}
-    
-    # Add IE courses (FIXED: Separate technical electives from core)
-    if 'industrial_engineering_courses' in data:
-        for course in data['industrial_engineering_courses']:
-            # FIXED: Check technical_electives attribute
-            if course.get('technical_electives', False):
-                lookup[course['code']] = {
-                    **course,
-                    'category': 'technical_electives',
-                    'subcategory': 'technical'
-                }
-            else:
-                lookup[course['code']] = {
-                    **course,
-                    'category': 'ie_core',
-                    'subcategory': 'core'
-                }
-    
-    # Add other related courses (always IE core)
-    if 'other_related_courses' in data:
-        for course in data['other_related_courses']:
-            lookup[course['code']] = {
-                **course,
-                'category': 'ie_core',
-                'subcategory': 'foundation'
-            }
-    
-    # Add Gen-Ed courses
-    if 'gen_ed_courses' in data:
-        for subcategory, courses in data['gen_ed_courses'].items():
-            for course in courses:
-                lookup[course['code']] = {
-                    **course,
-                    'category': 'gen_ed',
-                    'subcategory': subcategory
-                }
-    
-    # REMOVED: No longer loading from separate technical electives file
-    
-    return lookup
-
 def analyze_course_distribution(data):
     """
     Analyze the distribution of courses across categories.
