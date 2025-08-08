@@ -2,17 +2,14 @@ import tempfile
 import os
 import json
 from pathlib import Path
+import re
 
 def load_course_categories():
-    """
-    Load course categories from separate JSON files.
-    FIXED: Now properly handles technical_electives attribute from B-IE files.
-    Returns: dict with categorized courses
-    """
+    """FUTURE-PROOF VERSION: Load course categories from separate JSON files."""
     course_data_dir = Path(__file__).parent.parent / "course_data"
     
     categories = {
-        "ie_core": {},  # Changed to dict to store course info
+        "ie_core": {},
         "technical_electives": {},
         "gen_ed": {
             "wellness": {},
@@ -21,54 +18,59 @@ def load_course_categories():
             "thai_citizen_global": {},
             "aesthetics": {}
         },
-        "all_courses": {}  # Master list of all courses
+        "all_courses": {}
     }
     
-    # Load IE Core courses from both B-IE files
-    for ie_file in ["B-IE-2565.json", "B-IE-2560.json"]:
-        ie_path = course_data_dir / ie_file
-        if ie_path.exists():
-            try:
-                with open(ie_path, 'r', encoding='utf-8') as f:
-                    ie_data = json.load(f)
-                    
-                    # Process industrial_engineering_courses
-                    for course in ie_data.get("industrial_engineering_courses", []):
-                        # Check if this course is marked as technical elective
+    # FUTURE-PROOF: Find all B-IE files dynamically
+    ie_files = []
+    if course_data_dir.exists():
+        for json_file in course_data_dir.glob("B-IE-*.json"):
+            year_match = re.search(r'B-IE-(\d{4})\.json', json_file.name)
+            if year_match:
+                year = int(year_match.group(1))
+                ie_files.append((year, json_file))
+    
+    # Sort by year (newest first) and process
+    ie_files.sort(key=lambda x: x[0], reverse=True)
+    
+    # Load IE Core courses from available B-IE files
+    for year, ie_file in ie_files:
+        try:
+            with open(ie_file, 'r', encoding='utf-8') as f:
+                ie_data = json.load(f)
+                
+                # Process industrial_engineering_courses
+                for course in ie_data.get("industrial_engineering_courses", []):
+                    if course["code"] not in categories["all_courses"]:
                         if course.get("technical_electives", False):
                             categories["technical_electives"][course["code"]] = course
                         else:
                             categories["ie_core"][course["code"]] = course
                         categories["all_courses"][course["code"]] = course
-                    
-                    # Process other_related_courses (these are always IE core, not technical electives)
-                    for course in ie_data.get("other_related_courses", []):
+                
+                # Process other_related_courses
+                for course in ie_data.get("other_related_courses", []):
+                    if course["code"] not in categories["all_courses"]:
                         categories["ie_core"][course["code"]] = course  
                         categories["all_courses"][course["code"]] = course
-                break  # Use first available file
-            except Exception as e:
-                print(f"Error loading {ie_file}: {e}")
-                continue
+                        
+        except Exception as e:
+            print(f"Error loading {ie_file}: {e}")
+            continue
     
-    # REMOVED: No longer loading from separate technical_electives.json file
-    # Technical electives are now identified by the technical_electives: true attribute
-    
-    # Load Gen-Ed courses with proper subcategory mapping
+    # Load Gen-Ed courses (unchanged)
     gen_ed_file = course_data_dir / "gen_ed_courses.json"
     if gen_ed_file.exists():
         try:
             with open(gen_ed_file, 'r', encoding='utf-8') as f:
                 gen_ed_data = json.load(f)
                 gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-                
-                # Map each subcategory properly
                 for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
                     for course in gen_ed_courses.get(subcategory, []):
                         categories["gen_ed"][subcategory][course["code"]] = course
                         categories["all_courses"][course["code"]] = course
         except Exception as e:
             print(f"Error loading gen_ed_courses.json: {e}")
-            pass
     
     return categories
 
