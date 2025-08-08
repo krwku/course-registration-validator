@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from components.session_manager import SessionManager
 from components.ui_components import UIComponents
-
+import re
 
 class CourseAnalyzer:
     """Handles course analysis and classification."""
@@ -13,10 +13,7 @@ class CourseAnalyzer:
         self.course_categories = None
     
     def load_course_categories(self) -> Dict:
-        """
-        Load course categories from separate JSON files.
-        FIXED: Now properly handles technical_electives attribute from B-IE files.
-        """
+        """FUTURE-PROOF VERSION: Load course categories from separate JSON files."""
         course_data_dir = Path(__file__).parent.parent / "course_data"
         
         categories = {
@@ -32,33 +29,44 @@ class CourseAnalyzer:
             "all_courses": {}
         }
         
-        # Load IE Core courses from both B-IE files
-        for ie_file in ["B-IE-2565.json", "B-IE-2560.json"]:
-            ie_path = course_data_dir / ie_file
-            if ie_path.exists():
-                try:
-                    with open(ie_path, 'r', encoding='utf-8') as f:
-                        ie_data = json.load(f)
-                        
-                        # Process industrial_engineering_courses
-                        for course in ie_data.get("industrial_engineering_courses", []):
-                            # Check if this course is marked as technical elective
+        # FUTURE-PROOF: Find all B-IE files dynamically
+        ie_files = []
+        if course_data_dir.exists():
+            for json_file in course_data_dir.glob("B-IE-*.json"):
+                year_match = re.search(r'B-IE-(\d{4})\.json', json_file.name)
+                if year_match:
+                    year = int(year_match.group(1))
+                    ie_files.append((year, json_file))
+        
+        # Sort by year (newest first) and process
+        ie_files.sort(key=lambda x: x[0], reverse=True)
+        
+        # Load IE Core courses from available B-IE files
+        for year, ie_file in ie_files:
+            try:
+                with open(ie_file, 'r', encoding='utf-8') as f:
+                    ie_data = json.load(f)
+                    
+                    # Process industrial_engineering_courses
+                    for course in ie_data.get("industrial_engineering_courses", []):
+                        if course["code"] not in categories["all_courses"]:
                             if course.get("technical_electives", False):
                                 categories["technical_electives"][course["code"]] = course
                             else:
                                 categories["ie_core"][course["code"]] = course
                             categories["all_courses"][course["code"]] = course
-                        
-                        # Process other_related_courses (these are always IE core)
-                        for course in ie_data.get("other_related_courses", []):
+                    
+                    # Process other_related_courses
+                    for course in ie_data.get("other_related_courses", []):
+                        if course["code"] not in categories["all_courses"]:
                             categories["ie_core"][course["code"]] = course  
                             categories["all_courses"][course["code"]] = course
-                    break  # Use first available file
-                except Exception as e:
-                    print(f"Error loading {ie_file}: {e}")
-                    continue
+                            
+            except Exception as e:
+                print(f"Error loading {ie_file}: {e}")
+                continue
         
-        # Load Gen-Ed courses
+        # Load Gen-Ed courses (unchanged)
         gen_ed_file = course_data_dir / "gen_ed_courses.json"
         if gen_ed_file.exists():
             try:

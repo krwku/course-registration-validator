@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import streamlit.components.v1 as components
-
+import re
 
 class FlowChartGenerator:
     """Handles generation and display of curriculum flow charts."""
@@ -13,10 +13,7 @@ class FlowChartGenerator:
         self.curriculum_template = None
     
     def load_course_categories_for_flow(self):
-        """
-        Load course categories for the flow generator.
-        FIXED: Now properly handles technical_electives attribute from B-IE files.
-        """
+        """FUTURE-PROOF VERSION: Load course categories for the flow generator."""
         course_data_dir = Path(__file__).parent.parent / "course_data"
         
         categories = {
@@ -32,33 +29,44 @@ class FlowChartGenerator:
             "all_courses": {}
         }
         
-        # Load IE Core courses from both B-IE files
-        for ie_file in ["B-IE-2560.json", "B-IE-2565.json"]:
-            ie_path = course_data_dir / ie_file
-            if ie_path.exists():
-                try:
-                    with open(ie_path, 'r', encoding='utf-8') as f:
-                        ie_data = json.load(f)
-                        
-                        # Process industrial_engineering_courses
-                        for course in ie_data.get("industrial_engineering_courses", []):
-                            # FIXED: Check if this course is marked as technical elective
+        # FUTURE-PROOF: Find all B-IE files dynamically
+        ie_files = []
+        if course_data_dir.exists():
+            for json_file in course_data_dir.glob("B-IE-*.json"):
+                year_match = re.search(r'B-IE-(\d{4})\.json', json_file.name)
+                if year_match:
+                    year = int(year_match.group(1))
+                    ie_files.append((year, json_file))
+        
+        # Sort by year (newest first) and process
+        ie_files.sort(key=lambda x: x[0], reverse=True)
+        
+        # Load IE Core courses from available B-IE files
+        for year, ie_file in ie_files:
+            try:
+                with open(ie_file, 'r', encoding='utf-8') as f:
+                    ie_data = json.load(f)
+                    
+                    # Process industrial_engineering_courses
+                    for course in ie_data.get("industrial_engineering_courses", []):
+                        if course["code"] not in categories["all_courses"]:
                             if course.get("technical_electives", False):
                                 categories["technical_electives"][course["code"]] = course
                             else:
                                 categories["ie_core"][course["code"]] = course
                             categories["all_courses"][course["code"]] = course
-                        
-                        # Process other_related_courses (these are always IE core, not technical electives)
-                        for course in ie_data.get("other_related_courses", []):
+                    
+                    # Process other_related_courses
+                    for course in ie_data.get("other_related_courses", []):
+                        if course["code"] not in categories["all_courses"]:
                             categories["ie_core"][course["code"]] = course  
                             categories["all_courses"][course["code"]] = course
-                    break  # Use first available file
-                except Exception as e:
-                    print(f"Error loading {ie_file}: {e}")
-                    continue
+                            
+            except Exception as e:
+                print(f"Error loading {ie_file}: {e}")
+                continue
         
-        # Load Gen-Ed courses
+        # Load Gen-Ed courses (unchanged)
         gen_ed_file = course_data_dir / "gen_ed_courses.json"
         if gen_ed_file.exists():
             try:
@@ -75,25 +83,47 @@ class FlowChartGenerator:
         return categories
 
     def load_curriculum_template_for_flow(self, catalog_name):
-        """Load curriculum template based on catalog name."""
+        """Load curriculum template based on catalog name - FUTURE-PROOF VERSION."""
         course_data_dir = Path(__file__).parent.parent / "course_data"
         templates_dir = course_data_dir / "templates"
         
-        # Determine which template to load
-        if "2560" in catalog_name:
-            template_file = templates_dir / "curriculum_template_2560.json"
-        elif "2565" in catalog_name:
-            template_file = templates_dir / "curriculum_template_2565.json"
-        else:
-            template_file = templates_dir / "curriculum_template_2565.json"  # Default
+        # Extract year from catalog name (e.g., "B-IE-2565" -> "2565")
+        year_match = re.search(r'(\d{4})', catalog_name)
+        if year_match:
+            year = year_match.group(1)
+            template_file = templates_dir / f"curriculum_template_{year}.json"
+            
+            # If specific template exists, use it
+            if template_file.exists():
+                try:
+                    with open(template_file, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except Exception as e:
+                    st.error(f"Error loading template {template_file}: {e}")
+            else:
+                st.warning(f"Template for {year} not found: {template_file}")
         
-        if template_file.exists():
+        # Fallback: Find the most recent available template
+        available_templates = []
+        if templates_dir.exists():
+            for template_file in templates_dir.glob("curriculum_template_*.json"):
+                template_year_match = re.search(r'curriculum_template_(\d{4})\.json', template_file.name)
+                if template_year_match:
+                    template_year = int(template_year_match.group(1))
+                    available_templates.append((template_year, template_file))
+        
+        if available_templates:
+            available_templates.sort(key=lambda x: x[0], reverse=True)
+            newest_year, newest_template = available_templates[0]
+            
+            st.info(f"Using fallback template: {newest_template.name}")
             try:
-                with open(template_file, 'r', encoding='utf-8') as f:
+                with open(newest_template, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                st.error(f"Error loading template: {e}")
+                st.error(f"Error loading fallback template: {e}")
         
+        st.error("No curriculum templates found!")
         return None
 
     def classify_course_for_flow(self, course_code, course_name="", course_categories=None):
