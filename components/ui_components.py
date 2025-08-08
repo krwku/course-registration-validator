@@ -155,7 +155,7 @@ class UIComponents:
                     st.success("✅ All validations passed")
         
         with col_status3:
-            st.markdown("*Enhanced for Raphin P.*", 
+            st.markdown("*Be smart Folk, don't be a joke*", 
                        help="Advanced course validation with enhanced deviation detection")
     
     @staticmethod
