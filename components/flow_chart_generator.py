@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import streamlit.components.v1 as components
-
+import re
 
 class FlowChartGenerator:
     """Handles generation and display of curriculum flow charts."""
@@ -75,25 +75,47 @@ class FlowChartGenerator:
         return categories
 
     def load_curriculum_template_for_flow(self, catalog_name):
-        """Load curriculum template based on catalog name."""
+        """Load curriculum template based on catalog name - FUTURE-PROOF VERSION."""
         course_data_dir = Path(__file__).parent.parent / "course_data"
         templates_dir = course_data_dir / "templates"
         
-        # Determine which template to load
-        if "2560" in catalog_name:
-            template_file = templates_dir / "curriculum_template_2560.json"
-        elif "2565" in catalog_name:
-            template_file = templates_dir / "curriculum_template_2565.json"
-        else:
-            template_file = templates_dir / "curriculum_template_2565.json"  # Default
+        # Extract year from catalog name (e.g., "B-IE-2565" -> "2565")
+        year_match = re.search(r'(\d{4})', catalog_name)
+        if year_match:
+            year = year_match.group(1)
+            template_file = templates_dir / f"curriculum_template_{year}.json"
+            
+            # If specific template exists, use it
+            if template_file.exists():
+                try:
+                    with open(template_file, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except Exception as e:
+                    st.error(f"Error loading template {template_file}: {e}")
+            else:
+                st.warning(f"Template for {year} not found: {template_file}")
         
-        if template_file.exists():
+        # Fallback: Find the most recent available template
+        available_templates = []
+        if templates_dir.exists():
+            for template_file in templates_dir.glob("curriculum_template_*.json"):
+                template_year_match = re.search(r'curriculum_template_(\d{4})\.json', template_file.name)
+                if template_year_match:
+                    template_year = int(template_year_match.group(1))
+                    available_templates.append((template_year, template_file))
+        
+        if available_templates:
+            available_templates.sort(key=lambda x: x[0], reverse=True)
+            newest_year, newest_template = available_templates[0]
+            
+            st.info(f"Using fallback template: {newest_template.name}")
             try:
-                with open(template_file, 'r', encoding='utf-8') as f:
+                with open(newest_template, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                st.error(f"Error loading template: {e}")
+                st.error(f"Error loading fallback template: {e}")
         
+        st.error("No curriculum templates found!")
         return None
 
     def classify_course_for_flow(self, course_code, course_name="", course_categories=None):
