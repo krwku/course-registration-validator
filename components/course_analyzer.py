@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from components.session_manager import SessionManager
 from components.ui_components import UIComponents
-
+import re
 
 class CourseAnalyzer:
     """Handles course analysis and classification."""
