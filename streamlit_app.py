@@ -21,7 +21,7 @@ from utils.course_data_loader import load_comprehensive_course_data
 from utils.pdf_extractor import PDFExtractor
 from validator import CourseRegistrationValidator
 
-# Import the fixed generators
+# Import the generators
 from utils.excel_generator import create_smart_registration_excel, classify_course, load_course_categories
 
 def safe_course_classification():
@@ -239,9 +239,9 @@ def classify_course_for_flow(course_code, course_name="", course_categories=None
     
     return ("unidentified", "unknown", False)
 
-def analyze_student_progress_fixed(semesters, template, course_categories):
+def analyze_student_progress_enhanced(semesters, template, course_categories):
     """
-    FIXED: Analyze student's actual progress against the curriculum template with much more lenient deviation detection.
+    Enhanced: Analyze student's actual progress against the curriculum template with much more lenient deviation detection.
     Updated to use proper technical electives classification.
     """
     # Organize student courses by completion status
@@ -418,8 +418,8 @@ def analyze_student_progress_fixed(semesters, template, course_categories):
         "elective_analysis": elective_analysis
     }
 
-def create_fixed_template_flow_html(student_info, semesters, validation_results, selected_course_data=None):
-    """Create template-based HTML flow chart with FIXED deviation detection."""
+def create_enhanced_template_flow_html(student_info, semesters, validation_results, selected_course_data=None):
+    """Create template-based HTML flow chart with enhanced deviation detection."""
     
     course_categories = load_course_categories_for_flow()
     
@@ -431,7 +431,7 @@ def create_fixed_template_flow_html(student_info, semesters, validation_results,
         return "Error: Could not load curriculum template", 1
     
     # Use the FIXED analysis function
-    analysis = analyze_student_progress_fixed(semesters, template, course_categories)
+    analysis = analyze_student_progress_enhanced(semesters, template, course_categories)
     
     # CSS styles with improved deviation indicators
     css_styles = """
@@ -730,14 +730,14 @@ def create_fixed_template_flow_html(student_info, semesters, validation_results,
     <!DOCTYPE html>
     <html>
     <head>
-        <title>FIXED Template-Based IE Curriculum Flow Chart</title>
+        <title>Template-Based IE Curriculum Flow Chart</title>
         <meta charset="utf-8">
         {css_styles}
     </head>
     <body>
         <div class="curriculum-container">
             <div class="header">
-                <h1>Industrial Engineering Curriculum Template Flow Chart (FIXED)</h1>
+                <h1>Industrial Engineering Curriculum Template Flow Chart</h1>
                 <div class="template-info">
                     <strong>Template:</strong> {template.get('curriculum_name', 'Unknown')} | 
                     <strong>Student:</strong> {student_info.get('name', 'N/A')} ({student_info.get('id', 'N/A')})
@@ -959,7 +959,7 @@ def create_fixed_template_flow_html(student_info, semesters, validation_results,
     
     html_content += f'''
     <div class="stats-summary">
-        <h3 style="text-align: center; color: #2c3e50;">📊 FIXED Analysis - Overall Progress Summary</h3>
+        <h3 style="text-align: center; color: #2c3e50;">📊 Enhanced Analysis - Overall Progress Summary</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px;">
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                 <div style="font-size: 24px; font-weight: bold; color: #2c3e50;">{completed_template_courses}/{total_template_courses}</div>
@@ -980,9 +980,9 @@ def create_fixed_template_flow_html(student_info, semesters, validation_results,
         </div>
         
         <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; text-align: center;">
-            <h4 style="margin: 0 0 10px 0; color: #27ae60;">📋 FIXED Schedule Analysis Summary</h4>
+            <h4 style="margin: 0 0 10px 0; color: #27ae60;">📋 Schedule Analysis Summary</h4>
             <p style="margin: 0; font-size: 14px; color: #2c3e50;">
-                <strong>ISSUE RESOLVED:</strong> The deviation detection is now much more lenient and realistic. 
+                <strong>Enhanced Analysis:</strong> The deviation detection is now much more lenient and realistic. 
                 Minor timing variations (±1-2 years) are normal and expected due to course availability, prerequisites, or personal scheduling.
                 <br><br><strong>Green ✓:</strong> Normal timing variations (±1-2 years) - Very common and not concerning
                 <br><strong>Orange ⚠️:</strong> Moderate variations (±2 years exactly) - Still within reasonable range
@@ -1009,7 +1009,7 @@ def main():
     
     st.title("🎓 KU Industrial Engineering Course Validator")
     st.markdown("*Smart Registration Planning with Advanced Course Detection*")
-    st.markdown("*Created for Raphin P. - FIXED Schedule Deviation Detection*")
+    st.markdown("*Created for Raphin P. - Enhanced Schedule Analysis*")
     
     # Initialize session state
     if 'student_info' not in st.session_state:
@@ -1262,15 +1262,15 @@ def main():
             try:
                 with st.spinner("Generating FIXED template-based curriculum flow chart..."):
                     # Use the FIXED function
-                    flow_html, flow_unidentified = create_fixed_template_flow_html(
+                    flow_html, flow_unidentified = create_enhanced_template_flow_html(
                         st.session_state.student_info,
                         st.session_state.semesters,
                         st.session_state.validation_results,
                         st.session_state.selected_course_data
                     )
                 
-                st.subheader("🗂️ FIXED Template-Based Curriculum Flow Chart")
-                st.markdown("*Shows ideal curriculum template with your actual progress and PROPERLY DETECTED deviations*")
+                st.subheader("🗂️ Template-Based Curriculum Flow Chart")
+                st.markdown("*Shows ideal curriculum template with your actual progress and enhanced deviation analysis*")
                 
                 if flow_html and len(flow_html.strip()) > 0:
                     # Escape the backticks in the HTML content for the f-string
@@ -1293,14 +1293,14 @@ def main():
                     col_flow1, col_flow2 = st.columns([2, 1])
                     
                     with col_flow1:
-                        st.success("✅ FIXED flow chart automatically opened in new window!")
-                        st.info("🔧 **FIXED:** Schedule deviations are now much more lenient and realistic")
+                        st.success("✅ Flow chart automatically opened in new window!")
+                        st.info("🔧 **Enhanced:** Schedule deviations are now more lenient and realistic")
                         if flow_unidentified > 0:
                             st.warning(f"⚠️ {flow_unidentified} unidentified courses in flow chart")
                     
                     with col_flow2:
                         # Re-open button for popup blocker cases
-                        if st.button("🔄 Re-open FIXED Flow Chart", help="Click if popup was blocked"):
+                        if st.button("🔄 Re-open Flow Chart", help="Click if popup was blocked"):
                             js_reopen = f"""
                             <script>
                             const flowHTML = `{escaped_flow_html}`;
@@ -1310,7 +1310,7 @@ def main():
                             </script>
                             """
                             st.components.v1.html(js_reopen, height=0)
-                            st.success("✅ FIXED flow chart re-opened!")
+                            st.success("✅ Flow chart re-opened!")
                     
                     st.info("💡 **Note:** If the window didn't open automatically, use the 'Re-open' button (popup might be blocked by browser).")
                     
@@ -1363,11 +1363,11 @@ def main():
                 try:
                     if 'flow_html' in locals():
                         st.download_button(
-                            label="🗂️ FIXED Flow Chart (HTML)",
+                            label="🗂️ Flow Chart (HTML)",
                             data=flow_html.encode('utf-8'),
-                            file_name=f"FIXED_curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
                             mime="text/html",
-                            help="FIXED Interactive semester-based curriculum flow chart with proper deviation detection",
+                            help="Interactive semester-based curriculum flow chart with enhanced deviation detection",
                             use_container_width=True
                         )
                         
@@ -1375,7 +1375,7 @@ def main():
                             st.warning(f"⚠️ {flow_unidentified} unidentified")
                     else:
                         # Generate flow chart for download if not already generated
-                        flow_html, flow_unidentified = create_fixed_template_flow_html(
+                        flow_html, flow_unidentified = create_enhanced_template_flow_html(
                             st.session_state.student_info,
                             st.session_state.semesters,
                             st.session_state.validation_results,
@@ -1383,11 +1383,11 @@ def main():
                         )
                         
                         st.download_button(
-                            label="🗂️ FIXED Flow Chart (HTML)",
+                            label="🗂️ Flow Chart (HTML)",
                             data=flow_html.encode('utf-8'),
-                            file_name=f"FIXED_curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
                             mime="text/html",
-                            help="FIXED Interactive semester-based curriculum flow chart with proper deviation detection",
+                            help="Interactive semester-based curriculum flow chart with enhanced deviation detection",
                             use_container_width=True
                         )
                         
@@ -1502,12 +1502,8 @@ def main():
                 st.success("✅ All validations passed")
     
     with col_status3:
-        st.markdown("*FIXED for Raphin P.*", 
-                   help="Advanced course validation with FIXED deviation detection")
+        st.markdown("*Enhanced for Raphin P.*", 
+                   help="Advanced course validation with enhanced deviation detection")
 
 if __name__ == "__main__":
     main()
-
-
-
-
