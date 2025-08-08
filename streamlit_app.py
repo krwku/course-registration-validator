@@ -19,7 +19,6 @@ sys.path.append(str(Path(__file__).parent))
 from utils.pdf_processor import extract_text_from_pdf_bytes
 from utils.course_data_loader import load_comprehensive_course_data
 from utils.pdf_extractor import PDFExtractor
-from utils.validation_adapter import ValidationAdapter
 from validator import CourseRegistrationValidator
 
 # Import the fixed generators
@@ -1508,6 +1507,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
