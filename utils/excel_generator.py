@@ -147,7 +147,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             ws.column_dimensions[col].width = width
         
         # HEADER SECTION
-        ws['A1'] = "KU INDUSTRIAL ENGINEERING - SMART COURSE REGISTRATION ANALYSIS (FIXED)"
+        ws['A1'] = "KU INDUSTRIAL ENGINEERING - SMART COURSE REGISTRATION ANALYSIS"
         ws['A1'].font = Font(bold=True, size=14)
         ws.merge_cells('A1:P1')
         ws['A1'].alignment = center_align
@@ -267,7 +267,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         # Add technical electives info
         tech_electives_count = len(classified_courses["technical_electives"])
         if tech_electives_count > 0:
-            ws[f'A{current_row}'] = f"✅ FIXED: {tech_electives_count} courses properly classified as Technical Electives"
+            ws[f'A{current_row}'] = f"✅ Enhanced: {tech_electives_count} courses properly classified as Technical Electives"
             ws[f'A{current_row}'].fill = green_fill
             ws[f'A{current_row}'].font = Font(bold=True)
             ws.merge_cells(f'A{current_row}:P{current_row}')
@@ -392,7 +392,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # TECHNICAL ELECTIVES SECTION (FIXED: Now properly populated from B-IE files)
         current_row = add_category_section(
-            "TECHNICAL ELECTIVES (FIXED: From B-IE Files)",
+            "TECHNICAL ELECTIVES (Enhanced: From B-IE Files)",
             classified_courses["technical_electives"],
             current_row,
             blue_fill
@@ -428,7 +428,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # FREE ELECTIVES SECTION (should now have fewer courses since technical electives are properly classified)
         current_row = add_category_section(
-            "FREE ELECTIVES (FIXED: Excludes Technical Electives)",
+            "FREE ELECTIVES (Enhanced: Excludes Technical Electives)",
             classified_courses["free_electives"],
             current_row,
             yellow_fill
@@ -437,7 +437,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         # COMPREHENSIVE SUMMARY SECTION
         current_row += 1
         
-        ws[f'A{current_row}'] = "COMPREHENSIVE CREDIT ANALYSIS (FIXED)"
+        ws[f'A{current_row}'] = "COMPREHENSIVE CREDIT ANALYSIS"
         ws[f'A{current_row}'].font = header_font
         ws[f'A{current_row}'].fill = blue_fill
         ws.merge_cells(f'A{current_row}:F{current_row}')
@@ -472,8 +472,8 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             "Language & Communication": (15, gen_ed_credits["language_communication"]),
             "Thai Citizen & Global": (2, gen_ed_credits["thai_citizen_global"]),
             "Aesthetics": (3, gen_ed_credits["aesthetics"]),
-            "Technical Electives (FIXED)": (None, tech_credits),
-            "Free Electives (FIXED)": (None, free_credits),
+            "Technical Electives": (None, tech_credits),
+            "Free Electives": (None, free_credits),
             "New Courses": (None, unidentified_credits)
         }
         
@@ -539,11 +539,11 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                 status_color = orange_fill
                 notes = f"{len(classified_courses['unidentified'])} courses need categorization"
             
-            # Special note for FIXED categories
-            if "FIXED" in category:
-                if category == "Technical Electives (FIXED)":
+            # Special note for enhanced categories
+            if category in ["Technical Electives", "Free Electives"]:
+                if category == "Technical Electives":
                     notes += f" - {len(classified_courses['technical_electives'])} courses from B-IE files"
-                elif category == "Free Electives (FIXED)":
+                elif category == "Free Electives":
                     notes += " - Excludes technical electives"
             
             ws[f'D{current_row}'] = status
@@ -560,7 +560,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # Grand total
         current_row += 1
-        ws[f'A{current_row}'] = "TOTAL GRADUATION PROGRESS (FIXED)"
+        ws[f'A{current_row}'] = "TOTAL GRADUATION PROGRESS"
         ws[f'A{current_row}'].font = Font(bold=True, size=11)
         ws[f'A{current_row}'].fill = blue_fill
         
@@ -586,7 +586,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # System recommendations
         current_row += 3
-        ws[f'A{current_row}'] = "SYSTEM RECOMMENDATIONS (FIXED)"
+        ws[f'A{current_row}'] = "SYSTEM RECOMMENDATIONS"
         ws[f'A{current_row}'].font = header_font
         ws[f'A{current_row}'].fill = blue_fill
         ws.merge_cells(f'A{current_row}:F{current_row}')
@@ -594,7 +594,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         recommendations = []
         
-        recommendations.append(f"✅ FIXED: Technical electives now properly classified from B-IE files ({len(classified_courses['technical_electives'])} courses)")
+        recommendations.append(f"✅ Enhanced: Technical electives now properly classified from B-IE files ({len(classified_courses['technical_electives'])} courses)")
         
         if unidentified_count > 0:
             recommendations.append(f"🔍 PRIORITY: Classify {unidentified_count} new courses to get accurate analysis")
@@ -612,7 +612,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         for i, rec in enumerate(recommendations):
             ws[f'A{current_row + i}'] = rec
             ws[f'A{current_row + i}'].font = normal_font
-            if "FIXED" in rec:
+            if "Enhanced" in rec:
                 ws[f'A{current_row + i}'].fill = green_fill
             elif "PRIORITY" in rec or "new courses" in rec:
                 ws[f'A{current_row + i}'].fill = orange_fill
