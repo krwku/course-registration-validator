@@ -198,3 +198,4 @@ def _display_results(session_manager, selected_course_data):
 
 if __name__ == "__main__":
     main()
+
