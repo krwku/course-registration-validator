@@ -255,12 +255,9 @@ def show_extraction_diagnostics(pdf_file):
     else:
         for issue in issues:
             st.warning(issue)
-
-if pdf_file is not None:
-    if st.sidebar.button("🔍 Show Extraction Diagnostics"):
-        show_extraction_diagnostics(pdf_file)
             
 if __name__ == "__main__":
     main()
+
 
 
