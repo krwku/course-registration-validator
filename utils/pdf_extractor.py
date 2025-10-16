@@ -59,11 +59,18 @@ class PDFExtractor:
         Returns:
             Dictionary containing student information
         """
-        # Extract student ID
+        # Extract student ID - collect exactly 10 digits, ignoring spaces
         student_id = "Unknown"
-        id_match = re.search(r'Student No\s*(\d+)', text)
+        id_match = re.search(r'Student No\s+([\d\s]+)', text)
         if id_match:
-            student_id = id_match.group(1).strip()
+            # Extract only digits, ignore spaces
+            digits = ''.join(c for c in id_match.group(1) if c.isdigit())
+            # Take first 10 digits
+            if len(digits) >= 10:
+                student_id = digits[:10]
+            elif len(digits) > 0:
+                # If less than 10 digits found, use what we have
+                student_id = digits
         
         # Extract name - stop at "Field of Study" 
         student_name = "Unknown"
