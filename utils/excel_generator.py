@@ -77,7 +77,7 @@ def load_course_categories():
 def classify_course(course_code, course_name="", course_categories=None):
     """
     Classify course into appropriate category using loaded JSON files.
-    FIXED: Now properly identifies technical electives from B-IE files.
+    PRIORITY ORDER: Gen-Ed → Technical Electives → IE Core → Free Electives
     Returns: (category, subcategory, is_identified)
     """
     if course_categories is None:
@@ -85,22 +85,21 @@ def classify_course(course_code, course_name="", course_categories=None):
     
     code = course_code.upper()
     
-    # Check Technical Electives FIRST (higher priority than IE Core)
-    # This ensures courses marked with technical_electives: true are classified correctly
-    if code in course_categories["technical_electives"]:
-        return ("technical_electives", "technical", True)
-    
-    # Check IE Core courses
-    if code in course_categories["ie_core"]:
-        return ("ie_core", "core", True)
-    
-    # Check Gen-Ed courses with proper subcategory detection
+    # PRIORITY 1: Check Gen-Ed courses FIRST (highest priority)
     for subcategory, courses in course_categories["gen_ed"].items():
         if code in courses:
             return ("gen_ed", subcategory, True)
     
-    # If we reach here, the course is unidentified
-    return ("unidentified", "unknown", False)
+    # PRIORITY 2: Check Technical Electives
+    if code in course_categories["technical_electives"]:
+        return ("technical_electives", "technical", True)
+    
+    # PRIORITY 3: Check IE Core courses
+    if code in course_categories["ie_core"]:
+        return ("ie_core", "core", True)
+    
+    # PRIORITY 4: Everything else is free elective (not in our database)
+    return ("free_electives", "free", False)  # False = not identified in database
 
 def create_smart_registration_excel(student_info, semesters, validation_results):
     """
