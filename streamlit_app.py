@@ -195,7 +195,72 @@ def _display_results(session_manager, selected_course_data):
     # Process another file option
     UIComponents.display_process_another_option()
 
+def show_extraction_diagnostics(pdf_file):
+    """Show detailed extraction diagnostics"""
+    import streamlit as st
+    from utils.pdf_processor import extract_text_from_pdf_bytes
+    from utils.pdf_extractor import PDFExtractor
+    
+    st.subheader("🔍 PDF Extraction Diagnostics")
+    
+    # Extract text
+    pdf_bytes = pdf_file.getvalue()
+    extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
+    
+    # Show raw text (first 2000 chars)
+    with st.expander("📄 Raw Extracted Text (first 2000 chars)"):
+        st.code(extracted_text[:2000])
+    
+    # Process with extractor
+    extractor = PDFExtractor()
+    student_info, semesters, _ = extractor.process_pdf(None, extracted_text)
+    
+    # Show extracted data
+    st.write("### Extraction Summary")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("Semesters Found", len(semesters))
+        total_courses = sum(len(sem.get("courses", [])) for sem in semesters)
+        st.metric("Total Courses Found", total_courses)
+    
+    with col2:
+        st.metric("Student ID", student_info.get("id", "Not Found"))
+        st.metric("Student Name", student_info.get("name", "Not Found")[:20] + "...")
+    
+    # Detailed semester breakdown
+    st.write("### Detailed Semester Breakdown")
+    for i, sem in enumerate(semesters):
+        with st.expander(f"{sem.get('semester', f'Semester {i+1}')} - {len(sem.get('courses', []))} courses"):
+            st.write(f"**GPA:** Sem={sem.get('sem_gpa', 'N/A')}, Cum={sem.get('cum_gpa', 'N/A')}")
+            st.write(f"**Total Credits:** {sem.get('total_credits', 0)}")
+            st.write("**Courses:**")
+            
+            for course in sem.get("courses", []):
+                st.write(f"- `{course.get('code')}` {course.get('name')} | Grade: {course.get('grade')} | Credits: {course.get('credits')}")
+    
+    # Show potential issues
+    st.write("### ⚠️ Potential Issues")
+    issues = []
+    
+    for sem in semesters:
+        if not sem.get("courses"):
+            issues.append(f"❌ {sem.get('semester')} has no courses extracted")
+        
+        if sem.get("sem_gpa") is None:
+            issues.append(f"⚠️ {sem.get('semester')} missing semester GPA")
+    
+    if not issues:
+        st.success("✅ No obvious issues detected")
+    else:
+        for issue in issues:
+            st.warning(issue)
 
+if pdf_file is not None:
+    if st.sidebar.button("🔍 Show Extraction Diagnostics"):
+        show_extraction_diagnostics(pdf_file)
+            
 if __name__ == "__main__":
     main()
+
 
