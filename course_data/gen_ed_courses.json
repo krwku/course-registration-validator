@@ -1,503 +1,505 @@
 {
   "gen_ed_courses": {
-    "wellness": [
+    "wellness_PE": [
       {
         "code": "01175111",
         "name": "Track and Field for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175112",
         "name": "Badminton for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175113",
         "name": "Tennis for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175114",
         "name": "Table Tennis for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175115",
         "name": "Shooting Activity for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175117",
         "name": "Meditation with Archery Activity",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175118",
         "name": "Chair Ball for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175119",
         "name": "Petanque for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175121",
         "name": "Basketball for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175122",
         "name": "Soccer for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175123",
         "name": "Volleyball for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175124",
         "name": "Handball for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175125",
         "name": "Softball for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175126",
         "name": "Takraw for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175127",
         "name": "Hockey for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175128",
         "name": "Rugby Football for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175129",
         "name": "Futsal for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175131",
         "name": "Swimming for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175133",
         "name": "Diving ",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175134",
         "name": "Water Polo ",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175141",
         "name": "Aerobic Dance for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175142",
         "name": "Folk Dance for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175143",
         "name": "Social Dance for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175144",
         "name": "Thai Classical Dance for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175151",
         "name": "Martial Art with Thai Sword",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175152",
         "name": "Martial Arts with Fencing",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175153",
         "name": "Martial Art with Thai Boxing",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175154",
         "name": "Martial Art with Boxing",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175155",
         "name": "Martial Art with Judo",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175156",
         "name": "Martial Art with Aikido",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175157",
         "name": "Martial Art with Krabi-Krabong",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175159",
         "name": "Martial Art with Karate",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175161",
         "name": "Brain Training with Playing Bridge",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175162",
         "name": "Bowling for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175163",
         "name": "Golf for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175164",
         "name": "Cycling for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175165",
         "name": "Weight Training for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175166",
         "name": "Martial Art with Taekwondo",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175167",
         "name": "Yoga for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175168",
         "name": "Jogging for Health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01175169",
         "name": "Exercise for developing Holistic Health",
         "credits": "2(1-2-3)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "04355185",
         "name": "Flying Disc for health",
         "credits": "1(0-2-1)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "04837111",
         "name": "Sports for Wellbeing",
         "credits": "2(1-2-3)",
-        "category": "Wellness"
-      },
+        "category": "wellness"
+      }
+    ],
+    "wellness": [
       {
         "code": "01173151",
         "name": "AIDS Education",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01174123",
         "name": "Recreation Camp",
         "credits": "2(1-2-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01174231",
         "name": "Introduction to Recreation",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01176141",
         "name": "Life and Career Planning for the New Generation",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01350103",
         "name": "Resilient Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01373103",
         "name": "Narrative and Medicine",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01387101",
         "name": "The Art of Living with Others",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01387103",
         "name": "Philosophy of Sufficiency Economics and Buddhism",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01390103",
         "name": "Tourism for Well-Being",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01402101",
         "name": "Beauty Products Literacy",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01416101",
         "name": "Genetics in Media",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01418103",
         "name": "Health and Digital Society",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01421201",
         "name": "Radiation, Life and Environment",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01453102",
         "name": "Law in Everyday Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01459101",
         "name": "Psychology for Modern Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01459102",
         "name": "Psychology and Human Diversity",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999011",
         "name": "Food for Mankind",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999012",
         "name": "Health for Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999033",
         "name": "Arts of Living",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999036",
         "name": "Happiness amongst Life Dynamics",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999048",
         "name": "Innovation for Environment and Well-being",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999051",
         "name": "Development of Core Competency through One Health",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "01999213",
         "name": "Environment, Technology and Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02032303",
         "name": "Agriculture and Quality of Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02032304",
         "name": "Agriculture for Green Earth",
         "credits": "2(2-0-4)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02207103",
         "name": "Home Handyman ",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02717011",
         "name": "Self and Self Development",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02724012",
         "name": "Personality Development",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02727104",
         "name": "Living Things and Natural Disasters",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02728101",
         "name": "Chemistry in Modern Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02999038",
         "name": "Happiness in the 21st Century",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02999044",
         "name": "Sufficiency Economy for Living",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "02999045",
         "name": "Enhancement of Living Value through Community Path",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "03521101",
         "name": "Sea and Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "03654112",
         "name": "Thai Herbs and their Benefits",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "03654113",
         "name": "Physical Activities for Modern Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "03654114",
         "name": "Mobile Applications for Modern Life",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "04101201",
         "name": "Lifestyle of Sufficiency Economy",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "04152201",
         "name": "New Trend Nutrition for Life ",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       },
       {
         "code": "04355181",
         "name": "Leisure Activity for Health",
         "credits": "3(3-0-6)",
-        "category": "Wellness"
+        "category": "wellness"
       }
     ],
     "entrepreneurship": [
@@ -505,543 +507,547 @@
         "code": "01005101",
         "name": "Modern Agricultural Technology",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01101101",
         "name": "General Economics in Globalization",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01131111",
         "name": "Finance for Entrepreneurs",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01177141",
         "name": "Knowledge Acquisition",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01179101",
         "name": "Entrepreneurial Skills ",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01200101",
         "name": "Innovative Thinking",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01242001",
         "name": "Design and Business of Creative Products",
         "credits": "3(2-2-5)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01387105",
         "name": "Buddhist Ethics of Business Operations",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01390104",
         "name": "Personality Development for Modern Entrepreneur",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01418102",
         "name": "Information Technology for Entrepreneurs",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01453103",
         "name": "Laws for New Entrepreneur",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01999041",
         "name": "Economics for Better Living",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01999043",
         "name": "Creativity for Value Management",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "01999112",
         "name": "Circular Economy Concept for Sustainability",
         "credits": "3(2-3-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "02714101",
         "name": "Critical Thinking and Problem Solving",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "02721121",
         "name": "Business Management for Social Sustainability",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "03600014",
         "name": "Creative Problem Solving and Critical Thinking Skills",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       },
       {
         "code": "03757123",
         "name": "Mathematics for Business",
         "credits": "3(3-0-6)",
-        "category": "Entrepreneurship"
+        "category": "entrepreneurship"
       }
     ],
-    "language_communication": [
+    "language_communication_thai": [
       {
         "code": "01999021",
         "name": "Thai Language for Academic and Professional Communication",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
-      },
+        "category": "language_communication"
+      }
+    ],
+    "language_communication_foreigner": [
       {
         "code": "01354101",
         "name": "Communicative Khmer I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01354102",
         "name": "Communicative Khmer II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01354103",
         "name": "Communicative Khmer III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355101",
         "name": "English for Everyday Life",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355102",
         "name": "English for University Life",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355103",
         "name": "English for Job Opportunities",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355104",
         "name": "English for Pre-medical Students I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355105",
         "name": "English for Pre-medical Students II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355106",
         "name": "Communicative English in Medicine",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355107",
         "name": "Essential English Writing Skills",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355108",
         "name": "English and Culture through Songs",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355109",
         "name": "Essential English Listening-Speaking Skills",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355119",
         "name": "Essential English Reading Skills",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355121",
         "name": "English Words and Pronunciation",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355201",
         "name": "Critical Reading and Writing in English",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355202",
         "name": "Report Writing in English",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355203",
         "name": "English Language Structure",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355204",
         "name": "Project Presentation in English",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355205",
         "name": "Reading for Mass Communication in English",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355206",
         "name": "Academic English",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355207",
         "name": "English Correspondence",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355208",
         "name": "English Skill Development through Games",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355209",
         "name": "Communicative English for Careers",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355303",
         "name": "English for Employment",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355304",
         "name": "English for Travel ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355306",
         "name": "English for Understanding and Appreciating Thai Art and Culture ***(ตั้งแต่ภาคต้น ปีการศึกษา 2566 เป็นต้นไป)",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01355307",
         "name": "Integrated English Language Skills for Communication",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01356101",
         "name": "Elementary French I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01356102",
         "name": "Elementary French II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01356103",
         "name": "Elementary French III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01356104",
         "name": "Elementary French IV",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01357101",
         "name": "Elementary German I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01357102",
         "name": "Elementary German II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01357103",
         "name": "Elementary German III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01357104",
         "name": "Elementary German IV",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01358101",
         "name": "Elementary Japanese I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01358102",
         "name": "Elementary Japanese II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01358103",
         "name": "Elementary Japanese III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01358104",
         "name": "Elementary Japanese IV ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01362101",
         "name": "Chinese I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01362102",
         "name": "Chinese II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01362201",
         "name": "Chinese III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01362202",
         "name": "Chinese IV",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01362301",
         "name": "Chinese V",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01364101",
         "name": "Spanish for Communication I ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01364102",
         "name": "Spanish for Communication II ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01364103",
         "name": "Spanish for Communication III ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01395101",
         "name": "Communicative Korean I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01395102",
         "name": "Communicative Korean II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01395103",
         "name": "Communicative Korean III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01395104",
         "name": "Communicative Korean IV",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01395105",
         "name": "Korean Reading and Oral Report ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399101",
         "name": "Communicative Vietnamese I",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399102",
         "name": "Communicative Vietnamese II",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399103",
         "name": "Communicative Vietnamese III",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399104",
         "name": "Communicative Vietnamese IV ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399105",
         "name": "Vietnamese Reading ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01399106",
         "name": "Vietnamese Listening and Speaking ",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "02724011",
         "name": "Intercultural Communication",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03754221",
         "name": "Basic English Pronunciation",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03754231",
         "name": "English Reading in Daily life",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03754241",
         "name": "English Grammatical Structure",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03754251",
         "name": "English Paragraph Writing",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03754271",
         "name": "English for Careers",
         "credits": "3(3-0-6)",
-        "category": "Language and Communication"
-      },
+        "category": "language_communication"
+      }
+    ],
+    "language_communication_computer": [
       {
         "code": "01371111",
         "name": "Information Media for Learning",
         "credits": "1(1-0-2)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01418101",
         "name": "Computer Applications",
         "credits": "1(0-2-1)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01418104",
         "name": "IT Updates",
         "credits": "2(2-0-4)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01418106",
         "name": "Digital Technology Skills",
         "credits": "3(2-2-5)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "01999023",
         "name": "Digital Literacy",
         "credits": "2(1-2-4)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03600013",
         "name": "Essential Computer Tools and Skills",
         "credits": "1(0-3-2)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       },
       {
         "code": "03752111",
         "name": "Information Resources for Research",
         "credits": "1(0-3-2)",
-        "category": "Language and Communication"
+        "category": "language_communication"
       }
     ],
     "aesthetics": [
@@ -1049,115 +1055,115 @@
         "code": "01007101",
         "name": "Horticulture for life Quality and Environment",
         "credits": "2(2-0-4)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01177142",
         "name": "Aesthetics in Lifelong Learning",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01240011",
         "name": "Design in Everyday Life",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01244101",
         "name": "Design for Well-being",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01255101",
         "name": "Man and Sea",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01308101",
         "name": "Sustainable Nature-based Tourism",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01350102",
         "name": "Visual Storytelling",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01387102",
         "name": "Philosophy for New Life",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01388101",
         "name": "Ethics for the Aesthetics of Life",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01401201",
         "name": "Plants for Value of Life Creation",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01418105",
         "name": "Digital Creative Arts",
         "credits": "3(2-2-5)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01420201",
         "name": "Gems and Jewelry",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01999034",
         "name": "Art Perception",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "01999035",
         "name": "Music Culture in Life",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "02708102",
         "name": "Literature and Science",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "02728102",
         "name": "Pigments in art",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "02999037",
         "name": "Atrs of Aesthetics for Happiness",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "03600012",
         "name": "Green Technology",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       },
       {
         "code": "03654111",
         "name": "Aesthetics of Sport",
         "credits": "3(3-0-6)",
-        "category": "Aesthetics"
+        "category": "aesthetics"
       }
     ],
     "thai_citizen_global": [
@@ -1165,13 +1171,7 @@
         "code": "01999111",
         "name": "Knowledge of the Land",
         "credits": "2(2-0-4)",
-        "category": "Thai Citizen and Global Citizen"
-      },
-      {
-        "code": "01001317",
-        "name": "Kings and State Leaders on Agricultural Sector Development",
-        "credits": "1(1-0-2)",
-        "category": "Thai Citizen and Global Citizen"
+        "category": "thai_citizen_global"
       }
     ]
   }
