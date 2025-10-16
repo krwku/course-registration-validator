@@ -93,7 +93,7 @@ class PDFExtractor:
     def extract_semesters(self, text):
         """
         ULTRA-ROBUST VERSION: Extract semester data with maximum flexibility.
-        Handles various PDF extraction quirks and spacing issues.
+        Handles various PDF extraction quirks, spacing issues, AND multi-column layouts.
         """
         # Semester detection patterns
         semester_patterns = [
@@ -103,15 +103,9 @@ class PDFExtractor:
             r'SummerSession(\d{4})'
         ]
         
-        # Multiple course extraction strategies
-        course_patterns = [
-            # Pattern 1: Normal spacing with any grade format
-            r'(\d{8})\s+([^\d]+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
-            # Pattern 2: Tight spacing
-            r'(\d{8})([A-Za-z][^\d]{10,80}?)([A-Z][\+\-]?|W|N|F|P)\s*(\d+)',
-            # Pattern 3: Very loose - capture course code and look for grade + credit at end
-            r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*$',
-        ]
+        # Course extraction pattern - finds course code, title, grade, credits
+        # This will find ALL occurrences on a line, not just the first
+        course_pattern = r'(\d{8})\s+(.+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)'
         
         gpa_pattern = r'sem\.\s*G\.P\.A\.\s*=\s*(\d+\.\d+).*?cum\.\s*G\.P\.A\.\s*=\s*(\d+\.\d+)'
         
@@ -159,12 +153,15 @@ class PDFExtractor:
                 "semester_order": 0 if semester_type == "Summer" else (1 if semester_type == "First" else 2)
             }
             
-            # Collect all lines for this semester into a block
+            # Collect all lines for this semester
             semester_block = []
             for line_num in range(sem_line_num + 1, end_line):
                 line = lines[line_num].strip()
                 if line and "http" not in line.lower() and ".php" not in line.lower():
                     semester_block.append(line)
+            
+            # Track seen course codes to avoid duplicates
+            seen_codes = set()
             
             # Process semester block
             for line in semester_block:
@@ -178,59 +175,59 @@ class PDFExtractor:
                         pass
                     continue
                 
-                # Try all course patterns
-                course_matched = False
-                for pattern_num, pattern in enumerate(course_patterns):
-                    course_match = re.search(pattern, line)
-                    
-                    if course_match:
-                        try:
-                            course_code = course_match.group(1).strip()
-                            course_name = course_match.group(2).strip()
-                            grade = course_match.group(3).strip()
-                            credits_str = course_match.group(4).strip()
-                            
-                            # Aggressive course name cleaning
-                            course_name = re.sub(r'\s+', ' ', course_name)  # normalize spaces
-                            course_name = re.sub(r'^\s*[IVX]+\s*', '', course_name)  # remove leading roman numerals
-                            course_name = course_name.strip()
-                            
-                            # Validate grade format
-                            valid_grades = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F', 'W', 'N', 'P', 'I', 'S', 'U']
-                            if grade not in valid_grades:
-                                continue
-                            
-                            # Parse credits
-                            credits = int(credits_str) if credits_str.isdigit() else 0
-                            
-                            # Validate we haven't seen this exact course code already
-                            if any(c['code'] == course_code for c in current_semester['courses']):
-                                continue
-                            
-                            course_data = {
-                                "code": course_code,
-                                "name": course_name,
-                                "grade": grade,
-                                "credits": credits
-                            }
-                            
-                            current_semester["courses"].append(course_data)
-                            
-                            # Count credits
-                            if grade not in ['W', 'N', '']:
-                                current_semester["total_credits"] += credits
-                            
-                            course_matched = True
-                            break  # Found match, stop trying patterns
-                            
-                        except (IndexError, ValueError) as e:
-                            continue
+                # KEY FIX: Find ALL courses on this line (handles multi-column tables)
+                course_matches = list(re.finditer(course_pattern, line))
                 
-                # If no pattern matched but line has course code, log it for debugging
-                if not course_matched and re.search(r'\d{8}', line):
-                    # DEBUG: Uncomment to see what's not matching
-                    # print(f"UNMATCHED LINE WITH COURSE CODE: {line}")
-                    pass
+                if not course_matches:
+                    continue
+                
+                # Process each course found on this line
+                for course_match in course_matches:
+                    try:
+                        course_code = course_match.group(1).strip()
+                        course_name = course_match.group(2).strip()
+                        grade = course_match.group(3).strip()
+                        credits_str = course_match.group(4).strip()
+                        
+                        # Skip if already seen (duplicate detection)
+                        if course_code in seen_codes:
+                            continue
+                        
+                        # Clean course name
+                        course_name = re.sub(r'\s+', ' ', course_name)
+                        course_name = re.sub(r'^\s*[IVX]+\s*', '', course_name)
+                        
+                        # Stop at next course code if present
+                        next_code_match = re.search(r'\d{8}', course_name)
+                        if next_code_match:
+                            course_name = course_name[:next_code_match.start()].strip()
+                        
+                        course_name = course_name.strip()
+                        
+                        # Validate grade
+                        valid_grades = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F', 'W', 'N', 'P', 'I', 'S', 'U']
+                        if grade not in valid_grades:
+                            continue
+                        
+                        # Parse credits
+                        credits = int(credits_str) if credits_str.isdigit() else 0
+                        
+                        course_data = {
+                            "code": course_code,
+                            "name": course_name,
+                            "grade": grade,
+                            "credits": credits
+                        }
+                        
+                        current_semester["courses"].append(course_data)
+                        seen_codes.add(course_code)
+                        
+                        # Count credits
+                        if grade not in ['W', 'N', '']:
+                            current_semester["total_credits"] += credits
+                        
+                    except (IndexError, ValueError) as e:
+                        continue
             
             # Only add semester if it has courses
             if current_semester["courses"]:
