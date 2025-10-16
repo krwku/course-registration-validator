@@ -56,6 +56,12 @@ def main():
     
     # Handle PDF upload and processing
     pdf_file = UIComponents.handle_pdf_upload()
+
+    if pdf_file is not None:
+        st.sidebar.divider()
+        if st.sidebar.button("🔍 Show Extraction Diagnostics", use_container_width=True):
+            show_extraction_diagnostics(pdf_file)
+            st.stop()  # Stop processing to show diagnostics
     
     if pdf_file is not None and selected_course_data is not None:
         # Process PDF if not already done
@@ -258,6 +264,7 @@ def show_extraction_diagnostics(pdf_file):
             
 if __name__ == "__main__":
     main()
+
 
 
 
