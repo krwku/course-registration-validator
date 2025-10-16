@@ -21,10 +21,13 @@
   "elective_requirements": {
     "free_electives": 6,
     "technical_electives": 12,
-    "wellness": 7,
+    "wellness": 6,
+    "wellness_PE": 1,
     "entrepreneurship": 3,
-    "thai_citizen_global": 2,
-    "language_communication": 15,
+    "thai_citizen_global": 3,
+    "language_communication_thai": 3,
+    "language_communication_foreigner": 9,
+    "language_communication_computer": 3,
     "aesthetics": 3
   }
 }
