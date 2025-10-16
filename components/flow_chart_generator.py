@@ -21,8 +21,11 @@ class FlowChartGenerator:
             "technical_electives": {},
             "gen_ed": {
                 "wellness": {},
+                "wellness_PE": {},
                 "entrepreneurship": {},
-                "language_communication": {},
+                "language_communication_thai": {},
+                "language_communication_foreigner": {},
+                "language_communication_computer": {},
                 "thai_citizen_global": {},
                 "aesthetics": {}
             },
@@ -73,10 +76,12 @@ class FlowChartGenerator:
                 with open(gen_ed_file, 'r', encoding='utf-8') as f:
                     gen_ed_data = json.load(f)
                     gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-                    for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
-                        for course in gen_ed_courses.get(subcategory, []):
-                            categories["gen_ed"][subcategory][course["code"]] = course
-                            categories["all_courses"][course["code"]] = course
+                    # Handle all gen_ed subcategories dynamically
+                    for subcategory, courses_list in gen_ed_courses.items():
+                        if subcategory in categories["gen_ed"]:
+                            for course in courses_list:
+                                categories["gen_ed"][subcategory][course["code"]] = course
+                                categories["all_courses"][course["code"]] = course
             except Exception as e:
                 print(f"Error loading gen_ed_courses.json: {e}")
         
@@ -600,8 +605,11 @@ class FlowChartGenerator:
             }
             
             .category-header.wellness { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+            .category-header.wellness_PE { background: linear-gradient(45deg, #e67e22, #d35400); }
             .category-header.entrepreneurship { background: linear-gradient(45deg, #f39c12, #e67e22); }
-            .category-header.language_communication { background: linear-gradient(45deg, #3498db, #2980b9); }
+            .category-header.language_communication_thai { background: linear-gradient(45deg, #3498db, #2980b9); }
+            .category-header.language_communication_foreigner { background: linear-gradient(45deg, #2980b9, #1f4e79); }
+            .category-header.language_communication_computer { background: linear-gradient(45deg, #5dade2, #3498db); }
             .category-header.thai_citizen_global { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
             .category-header.aesthetics { background: linear-gradient(45deg, #1abc9c, #16a085); }
             .category-header.technical_electives { background: linear-gradient(45deg, #34495e, #2c3e50); }
@@ -825,11 +833,19 @@ class FlowChartGenerator:
             progress_percentage = min((completed_credits / required_credits) * 100, 100) if required_credits > 0 else 0
             
             # Format category name
-            category_display = elective_key.replace('_', ' ').title()
-            if elective_key == 'thai_citizen_global':
-                category_display = 'Thai Citizen & Global'
-            elif elective_key == 'language_communication':
-                category_display = 'Language & Communication'
+            category_display_map = {
+                'wellness': 'Wellness',
+                'wellness_PE': 'Wellness & PE',
+                'entrepreneurship': 'Entrepreneurship',
+                'language_communication_thai': 'Thai Language & Communication',
+                'language_communication_foreigner': 'Foreign Language & Communication',
+                'language_communication_computer': 'Computer & Digital Literacy',
+                'thai_citizen_global': 'Thai Citizen & Global',
+                'aesthetics': 'Aesthetics',
+                'technical_electives': 'Technical Electives',
+                'free_electives': 'Free Electives'
+            }
+            category_display = category_display_map.get(elective_key, elective_key.replace('_', ' ').title())
             
             html_content += f'''
             <div class="elective-category">

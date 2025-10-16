@@ -21,8 +21,11 @@ class CourseAnalyzer:
             "technical_electives": {},
             "gen_ed": {
                 "wellness": {},
+                "wellness_PE": {},
                 "entrepreneurship": {},
-                "language_communication": {},
+                "language_communication_thai": {},
+                "language_communication_foreigner": {},
+                "language_communication_computer": {},
                 "thai_citizen_global": {},
                 "aesthetics": {}
             },
@@ -73,10 +76,12 @@ class CourseAnalyzer:
                 with open(gen_ed_file, 'r', encoding='utf-8') as f:
                     gen_ed_data = json.load(f)
                     gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-                    for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
-                        for course in gen_ed_courses.get(subcategory, []):
-                            categories["gen_ed"][subcategory][course["code"]] = course
-                            categories["all_courses"][course["code"]] = course
+                    # Handle all gen_ed subcategories dynamically
+                    for subcategory, courses_list in gen_ed_courses.items():
+                        if subcategory in categories["gen_ed"]:
+                            for course in courses_list:
+                                categories["gen_ed"][subcategory][course["code"]] = course
+                                categories["all_courses"][course["code"]] = course
             except Exception as e:
                 print(f"Error loading gen_ed_courses.json: {e}")
         
@@ -222,11 +227,7 @@ class CourseAnalyzer:
             'ie_core': len(self.course_categories["ie_core"]),
             'technical_electives': len(self.course_categories["technical_electives"]),
             'gen_ed': {
-                'wellness': len(self.course_categories["gen_ed"]["wellness"]),
-                'entrepreneurship': len(self.course_categories["gen_ed"]["entrepreneurship"]),
-                'language_communication': len(self.course_categories["gen_ed"]["language_communication"]),
-                'thai_citizen_global': len(self.course_categories["gen_ed"]["thai_citizen_global"]),
-                'aesthetics': len(self.course_categories["gen_ed"]["aesthetics"])
+                category: len(courses) for category, courses in self.course_categories["gen_ed"].items()
             },
             'total': len(self.course_categories["all_courses"])
         }
