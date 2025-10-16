@@ -199,69 +199,129 @@ def _display_results(session_manager, selected_course_data):
     # Process another file option
     UIComponents.display_process_another_option()
 
-def show_extraction_diagnostics(pdf_file):
-    """Show detailed extraction diagnostics"""
+def analyze_pdf_line_by_line(pdf_file):
+    """Analyze PDF extraction line by line to find missing courses"""
     import streamlit as st
+    import re
     from utils.pdf_processor import extract_text_from_pdf_bytes
-    from utils.pdf_extractor import PDFExtractor
     
-    st.subheader("🔍 PDF Extraction Diagnostics")
+    st.subheader("🔬 Line-by-Line PDF Analysis")
     
     # Extract text
     pdf_bytes = pdf_file.getvalue()
-    extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
+    text = extract_text_from_pdf_bytes(pdf_bytes)
     
-    # Show raw text (first 2000 chars)
-    with st.expander("📄 Raw Extracted Text (first 2000 chars)"):
-        st.code(extracted_text[:2000])
+    lines = text.split('\n')
     
-    # Process with extractor
-    extractor = PDFExtractor()
-    student_info, semesters, _ = extractor.process_pdf(None, extracted_text)
+    # Find semester boundaries
+    semester_pattern = r'(First|Second|Summer).*(Semester|Session).*(\d{4})'
+    semester_lines = []
     
-    # Show extracted data
-    st.write("### Extraction Summary")
-    col1, col2 = st.columns(2)
+    for i, line in enumerate(lines):
+        if re.search(semester_pattern, line, re.IGNORECASE):
+            semester_lines.append(i)
+            st.success(f"**Line {i}:** SEMESTER FOUND - {line.strip()}")
     
-    with col1:
-        st.metric("Semesters Found", len(semesters))
-        total_courses = sum(len(sem.get("courses", [])) for sem in semesters)
-        st.metric("Total Courses Found", total_courses)
-    
-    with col2:
-        st.metric("Student ID", student_info.get("id", "Not Found"))
-        st.metric("Student Name", student_info.get("name", "Not Found")[:20] + "...")
-    
-    # Detailed semester breakdown
-    st.write("### Detailed Semester Breakdown")
-    for i, sem in enumerate(semesters):
-        with st.expander(f"{sem.get('semester', f'Semester {i+1}')} - {len(sem.get('courses', []))} courses"):
-            st.write(f"**GPA:** Sem={sem.get('sem_gpa', 'N/A')}, Cum={sem.get('cum_gpa', 'N/A')}")
-            st.write(f"**Total Credits:** {sem.get('total_credits', 0)}")
-            st.write("**Courses:**")
-            
-            for course in sem.get("courses", []):
-                st.write(f"- `{course.get('code')}` {course.get('name')} | Grade: {course.get('grade')} | Credits: {course.get('credits')}")
-    
-    # Show potential issues
-    st.write("### ⚠️ Potential Issues")
-    issues = []
-    
-    for sem in semesters:
-        if not sem.get("courses"):
-            issues.append(f"❌ {sem.get('semester')} has no courses extracted")
+    # Analyze lines between first two semesters
+    if len(semester_lines) >= 2:
+        start = semester_lines[0]
+        end = semester_lines[1]
         
-        if sem.get("sem_gpa") is None:
-            issues.append(f"⚠️ {sem.get('semester')} missing semester GPA")
+        st.write(f"### Analyzing lines {start} to {end} (First Semester)")
+        
+        course_pattern = r'\d{8}'
+        matched_lines = []
+        unmatched_lines = []
+        
+        for i in range(start + 1, end):
+            line = lines[i].strip()
+            if not line or len(line) < 10:
+                continue
+            
+            if re.search(course_pattern, line):
+                # This line has a course code
+                # Try to parse it
+                patterns_to_try = [
+                    r'(\d{8})\s+([^\d]+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
+                    r'(\d{8})([A-Za-z][^\d]{10,80}?)([A-Z][\+\-]?|W|N|F|P)\s*(\d+)',
+                    r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*,
+                ]
+                
+                matched = False
+                for pattern_num, pattern in enumerate(patterns_to_try):
+                    match = re.search(pattern, line)
+                    if match:
+                        matched_lines.append((i, line, match.groups(), pattern_num))
+                        matched = True
+                        break
+                
+                if not matched:
+                    unmatched_lines.append((i, line))
+        
+        # Show matched
+        st.write("#### ✅ Successfully Matched Course Lines:")
+        for i, line, groups, pattern_num in matched_lines:
+            with st.expander(f"Line {i} (Pattern {pattern_num + 1})"):
+                st.code(line)
+                st.write(f"- **Code:** {groups[0]}")
+                st.write(f"- **Name:** {groups[1]}")
+                st.write(f"- **Grade:** {groups[2]}")
+                st.write(f"- **Credits:** {groups[3]}")
+        
+        st.metric("Matched Courses", len(matched_lines))
+        
+        # Show unmatched
+        if unmatched_lines:
+            st.write("#### ❌ Lines with Course Codes that FAILED to Match:")
+            st.error(f"Found {len(unmatched_lines)} lines with course codes that couldn't be parsed!")
+            
+            for i, line in unmatched_lines:
+                with st.expander(f"❌ Line {i} - UNMATCHED"):
+                    st.code(line)
+                    
+                    # Show what we can detect
+                    code_match = re.search(r'(\d{8})', line)
+                    if code_match:
+                        st.write(f"- **Course Code Found:** {code_match.group(1)}")
+                    
+                    # Try to find grade-like patterns
+                    grade_match = re.search(r'\b([A-F][\+\-]?|W|N|P)\b', line)
+                    if grade_match:
+                        st.write(f"- **Possible Grade:** {grade_match.group(1)}")
+                    
+                    # Find numbers that could be credits
+                    credit_match = re.findall(r'\b(\d)\b', line)
+                    if credit_match:
+                        st.write(f"- **Possible Credits:** {credit_match}")
+                    
+                    st.warning("💡 Copy this line and share it so we can fix the pattern!")
+            
+            st.metric("⚠️ Unmatched Course Lines", len(unmatched_lines))
+        else:
+            st.success("✅ All course lines successfully matched!")
     
-    if not issues:
-        st.success("✅ No obvious issues detected")
-    else:
-        for issue in issues:
-            st.warning(issue)
+    # Allow user to test custom patterns
+    st.write("### 🧪 Test Custom Pattern")
+    test_line = st.text_input("Paste a problematic line here:")
+    custom_pattern = st.text_input("Test your regex pattern:", 
+                                   value=r'(\d{8})\s+(.+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)')
+    
+    if test_line and custom_pattern:
+        try:
+            match = re.search(custom_pattern, test_line)
+            if match:
+                st.success("✅ Pattern matched!")
+                st.write("**Groups:**")
+                for i, group in enumerate(match.groups()):
+                    st.write(f"{i+1}. {group}")
+            else:
+                st.error("❌ Pattern did not match")
+        except Exception as e:
+            st.error(f"Pattern error: {e}")
             
 if __name__ == "__main__":
     main()
+
 
 
 
