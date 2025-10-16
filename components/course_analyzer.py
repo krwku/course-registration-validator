@@ -87,7 +87,7 @@ class CourseAnalyzer:
                        course_categories: Optional[Dict] = None) -> Tuple[str, str, bool]:
         """
         Classify course into appropriate category.
-        FIXED: Now properly identifies technical electives from B-IE files.
+        PRIORITY ORDER: Gen-Ed → Technical Electives → IE Core → Free Electives
         """
         if course_categories is None:
             if self.course_categories is None:
@@ -96,20 +96,21 @@ class CourseAnalyzer:
         
         code = course_code.upper()
         
-        # Check Technical Electives FIRST (higher priority than IE Core)
-        if code in course_categories["technical_electives"]:
-            return ("technical_electives", "technical", True)
-        
-        # Check IE Core courses
-        if code in course_categories["ie_core"]:
-            return ("ie_core", "core", True)
-        
-        # Check Gen-Ed courses
+        # PRIORITY 1: Check Gen-Ed courses FIRST (highest priority)
         for subcategory, courses in course_categories["gen_ed"].items():
             if code in courses:
                 return ("gen_ed", subcategory, True)
         
-        return ("unidentified", "unknown", False)
+        # PRIORITY 2: Check Technical Electives
+        if code in course_categories["technical_electives"]:
+            return ("technical_electives", "technical", True)
+        
+        # PRIORITY 3: Check IE Core courses
+        if code in course_categories["ie_core"]:
+            return ("ie_core", "core", True)
+        
+        # PRIORITY 4: Everything else is free elective (not in our database)
+        return ("free_electives", "free", False)  # False = not identified in database
     
     def analyze_unidentified_courses(self, semesters: List[Dict]) -> List[Dict]:
         """Analyze transcript for unidentified courses."""
