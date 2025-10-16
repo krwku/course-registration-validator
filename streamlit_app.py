@@ -63,12 +63,11 @@ def analyze_pdf_line_by_line(pdf_file):
                 continue
             
             if re.search(course_pattern, line):
-                # This line has a course code
-                # Try to parse it
+                # This line has a course code - try to parse it
                 patterns_to_try = [
                     r'(\d{8})\s+([^\d]+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
                     r'(\d{8})([A-Za-z][^\d]{10,80}?)([A-Z][\+\-]?|W|N|F|P)\s*(\d+)',
-                    r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*,
+                    r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*$'
                 ]
                 
                 matched = False
@@ -127,8 +126,10 @@ def analyze_pdf_line_by_line(pdf_file):
     # Allow user to test custom patterns
     st.write("### 🧪 Test Custom Pattern")
     test_line = st.text_input("Paste a problematic line here:")
-    custom_pattern = st.text_input("Test your regex pattern:", 
-                                   value=r'(\d{8})\s+(.+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)')
+    custom_pattern = st.text_input(
+        "Test your regex pattern:", 
+        value=r'(\d{8})\s+(.+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)'
+    )
     
     if test_line and custom_pattern:
         try:
@@ -320,6 +321,7 @@ def _display_results(session_manager, selected_course_data):
             
 if __name__ == "__main__":
     main()
+
 
 
 
