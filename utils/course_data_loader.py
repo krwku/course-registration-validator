@@ -194,8 +194,11 @@ def analyze_course_distribution(data):
         'technical_electives': [],
         'gen_ed': {
             'wellness': [],
+            'wellness_PE': [],
             'entrepreneurship': [],
-            'language_communication': [],
+            'language_communication_thai': [],
+            'language_communication_foreigner': [],
+            'language_communication_computer': [],
             'thai_citizen_global': [],
             'aesthetics': []
         },

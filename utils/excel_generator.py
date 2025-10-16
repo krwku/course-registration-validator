@@ -13,8 +13,11 @@ def load_course_categories():
         "technical_electives": {},
         "gen_ed": {
             "wellness": {},
+            "wellness_PE": {},
             "entrepreneurship": {},
-            "language_communication": {},
+            "language_communication_thai": {},
+            "language_communication_foreigner": {},
+            "language_communication_computer": {},
             "thai_citizen_global": {},
             "aesthetics": {}
         },
@@ -65,10 +68,12 @@ def load_course_categories():
             with open(gen_ed_file, 'r', encoding='utf-8') as f:
                 gen_ed_data = json.load(f)
                 gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
-                for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
-                    for course in gen_ed_courses.get(subcategory, []):
-                        categories["gen_ed"][subcategory][course["code"]] = course
-                        categories["all_courses"][course["code"]] = course
+                # Handle all gen_ed subcategories dynamically
+                for subcategory, courses_list in gen_ed_courses.items():
+                    if subcategory in categories["gen_ed"]:
+                        for course in courses_list:
+                            categories["gen_ed"][subcategory][course["code"]] = course
+                            categories["all_courses"][course["code"]] = course
         except Exception as e:
             print(f"Error loading gen_ed_courses.json: {e}")
     
@@ -167,8 +172,11 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             "ie_core": [],
             "gen_ed": {
                 "wellness": [],
+                "wellness_PE": [],
                 "entrepreneurship": [],
-                "language_communication": [],
+                "language_communication_thai": [],
+                "language_communication_foreigner": [],
+                "language_communication_computer": [],
                 "thai_citizen_global": [],
                 "aesthetics": []
             },
@@ -410,9 +418,12 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         # GEN-ED SECTIONS with proper credit requirements
         gen_ed_categories = [
-            ("wellness", "WELLNESS (Gen-Ed)", "7"),
+            ("wellness", "WELLNESS (Gen-Ed)", "5"),
+            ("wellness_PE", "WELLNESS & PE (Gen-Ed)", "2"),
             ("entrepreneurship", "ENTREPRENEURSHIP (Gen-Ed)", "3"),
-            ("language_communication", "LANGUAGE & COMMUNICATION (Gen-Ed)", "15"),
+            ("language_communication_thai", "THAI LANGUAGE & COMMUNICATION (Gen-Ed)", "3"),
+            ("language_communication_foreigner", "FOREIGN LANGUAGE & COMMUNICATION (Gen-Ed)", "9"),
+            ("language_communication_computer", "COMPUTER & DIGITAL LITERACY (Gen-Ed)", "3"),
             ("thai_citizen_global", "THAI CITIZEN & GLOBAL CITIZENSHIP (Gen-Ed)", "2"),
             ("aesthetics", "AESTHETICS (Gen-Ed)", "3")
         ]
@@ -451,7 +462,8 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         gen_ed_credits = {}
         gen_ed_totals = {}
         
-        for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
+        # Handle all gen_ed subcategories dynamically
+        for subcategory in classified_courses["gen_ed"].keys():
             gen_ed_credits[subcategory] = sum(
                 c["credits"] for c in classified_courses["gen_ed"][subcategory] 
                 if c["grade"] not in ['F', 'W', 'N', '']
@@ -465,18 +477,29 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         free_credits = sum(c["credits"] for c in classified_courses["free_electives"] if c["grade"] not in ['F', 'W', 'N', ''])
         unidentified_credits = sum(c["credits"] for c in classified_courses["unidentified"] if c["grade"] not in ['F', 'W', 'N', ''])
         
-        # Credit requirements mapping
+        # Credit requirements mapping - dynamically build from gen_ed_credits
         requirements = {
             "IE Core": (110, ie_credits),
-            "Wellness": (7, gen_ed_credits["wellness"]),
-            "Entrepreneurship": (3, gen_ed_credits["entrepreneurship"]),
-            "Language & Communication": (15, gen_ed_credits["language_communication"]),
-            "Thai Citizen & Global": (2, gen_ed_credits["thai_citizen_global"]),
-            "Aesthetics": (3, gen_ed_credits["aesthetics"]),
             "Technical Electives": (None, tech_credits),
             "Free Electives": (None, free_credits),
             "New Courses": (None, unidentified_credits)
         }
+        
+        # Add gen_ed categories dynamically with proper display names
+        gen_ed_display_names = {
+            "wellness": ("Wellness", 5),
+            "wellness_PE": ("Wellness & PE", 2),
+            "entrepreneurship": ("Entrepreneurship", 3),
+            "language_communication_thai": ("Thai Language & Communication", 3),
+            "language_communication_foreigner": ("Foreign Language & Communication", 9),
+            "language_communication_computer": ("Computer & Digital Literacy", 3),
+            "thai_citizen_global": ("Thai Citizen & Global", 2),
+            "aesthetics": ("Aesthetics", 3)
+        }
+        
+        for category, (display_name, required) in gen_ed_display_names.items():
+            if category in gen_ed_credits:
+                requirements[display_name] = (required, gen_ed_credits[category])
         
         # Summary headers
         headers = ["Category", "Required", "Earned", "Status", "Notes"]
