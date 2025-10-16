@@ -92,8 +92,8 @@ class PDFExtractor:
     
     def extract_semesters(self, text):
         """
-        ULTRA-ROBUST VERSION: Extract semester data with maximum flexibility.
-        Handles various PDF extraction quirks and spacing issues.
+        ULTRA-ROBUST VERSION 2: Handles both clean and messy PDF extractions.
+        Works with PDFs that have irregular spacing or missing spaces.
         """
         # Semester detection patterns
         semester_patterns = [
@@ -103,14 +103,86 @@ class PDFExtractor:
             r'SummerSession(\d{4})'
         ]
         
-        # Multiple course extraction strategies
+        # EXPANDED: Even more aggressive course patterns
         course_patterns = [
-            # Pattern 1: Normal spacing with any grade format
+            # Pattern 1: Standard with spaces
             r'(\d{8})\s+([^\d]+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
-            # Pattern 2: Tight spacing
+            
+            # Pattern 2: Minimal spaces (course code then everything)
             r'(\d{8})([A-Za-z][^\d]{10,80}?)([A-Z][\+\-]?|W|N|F|P)\s*(\d+)',
-            # Pattern 3: Very loose - capture course code and look for grade + credit at end
-            r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*$',
+            
+            # Pattern 3: Very loose matching
+            r'(\d{8})\s*(.+?)\s+([A-FWNP][\+\-]?)\s+(\d+)\s*
+    
+    def process_pdf(self, pdf_path, text=None):
+        """
+        Process a PDF transcript and extract all data.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            text: Optional pre-extracted text (used instead of extracting from PDF)
+            
+        Returns:
+            Tuple of (student_info, semesters, extracted_text)
+        """
+        # Use provided text or extract from PDF
+        if text is not None:
+            extracted_text = text
+        else:
+            extracted_text = self.extract_text_from_pdf(pdf_path)
+        
+        if not extracted_text:
+            logger.error("No text extracted from PDF")
+            return {}, [], ""
+        
+        # Extract student info
+        student_info = self.extract_student_info(extracted_text)
+        
+        # Extract semesters
+        semesters = self.extract_semesters(extracted_text)
+        
+        return student_info, semesters, extracted_text
+,
+            
+            # Pattern 4: NO SPACES - handle concatenated text
+            # Matches: 01208111Engineering DrawingB+3
+            r'(\d{8})([A-Za-z][^0-9]+?)([A-Z][\+\-]?)(\d+)\s*
+    
+    def process_pdf(self, pdf_path, text=None):
+        """
+        Process a PDF transcript and extract all data.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            text: Optional pre-extracted text (used instead of extracting from PDF)
+            
+        Returns:
+            Tuple of (student_info, semesters, extracted_text)
+        """
+        # Use provided text or extract from PDF
+        if text is not None:
+            extracted_text = text
+        else:
+            extracted_text = self.extract_text_from_pdf(pdf_path)
+        
+        if not extracted_text:
+            logger.error("No text extracted from PDF")
+            return {}, [], ""
+        
+        # Extract student info
+        student_info = self.extract_student_info(extracted_text)
+        
+        # Extract semesters
+        semesters = self.extract_semesters(extracted_text)
+        
+        return student_info, semesters, extracted_text
+,
+            
+            # Pattern 5: Spaces only around grade
+            r'(\d{8})([A-Za-z].+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
+            
+            # Pattern 6: Handle ampersands and special chars better
+            r'(\d{8})\s*([A-Za-z&\s\'\-\(\)]+?)\s+([A-Z][\+\-]?|W|N|F|P)\s+(\d+)',
         ]
         
         gpa_pattern = r'sem\.\s*G\.P\.A\.\s*=\s*(\d+\.\d+).*?cum\.\s*G\.P\.A\.\s*=\s*(\d+\.\d+)'
@@ -120,7 +192,7 @@ class PDFExtractor:
         
         lines = text.split('\n')
         
-        # Find all semester headers with their line numbers
+        # Find all semester headers
         semester_markers = []
         for line_num, line in enumerate(lines):
             line_clean = line.strip()
@@ -159,12 +231,15 @@ class PDFExtractor:
                 "semester_order": 0 if semester_type == "Summer" else (1 if semester_type == "First" else 2)
             }
             
-            # Collect all lines for this semester into a block
+            # Collect all lines for this semester
             semester_block = []
             for line_num in range(sem_line_num + 1, end_line):
                 line = lines[line_num].strip()
                 if line and "http" not in line.lower() and ".php" not in line.lower():
                     semester_block.append(line)
+            
+            # Track seen course codes to avoid duplicates
+            seen_codes = set()
             
             # Process semester block
             for line in semester_block:
@@ -176,6 +251,10 @@ class PDFExtractor:
                         current_semester["cum_gpa"] = float(gpa_match.group(2))
                     except (ValueError, IndexError):
                         pass
+                    continue
+                
+                # Skip if no course code
+                if not re.search(r'\d{8}', line):
                     continue
                 
                 # Try all course patterns
@@ -190,12 +269,83 @@ class PDFExtractor:
                             grade = course_match.group(3).strip()
                             credits_str = course_match.group(4).strip()
                             
+                            # Skip if already seen
+                            if course_code in seen_codes:
+                                continue
+                            
                             # Aggressive course name cleaning
-                            course_name = re.sub(r'\s+', ' ', course_name)  # normalize spaces
-                            course_name = re.sub(r'^\s*[IVX]+\s*', '', course_name)  # remove leading roman numerals
+                            course_name = re.sub(r'\s+', ' ', course_name)
+                            course_name = re.sub(r'^\s*[IVX]+\s*', '', course_name)
+                            
+                            # Clean up course name - remove trailing single letters
+                            course_name = re.sub(r'\s+[A-Z]
+    
+    def process_pdf(self, pdf_path, text=None):
+        """
+        Process a PDF transcript and extract all data.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            text: Optional pre-extracted text (used instead of extracting from PDF)
+            
+        Returns:
+            Tuple of (student_info, semesters, extracted_text)
+        """
+        # Use provided text or extract from PDF
+        if text is not None:
+            extracted_text = text
+        else:
+            extracted_text = self.extract_text_from_pdf(pdf_path)
+        
+        if not extracted_text:
+            logger.error("No text extracted from PDF")
+            return {}, [], ""
+        
+        # Extract student info
+        student_info = self.extract_student_info(extracted_text)
+        
+        # Extract semesters
+        semesters = self.extract_semesters(extracted_text)
+        
+        return student_info, semesters, extracted_text
+, '', course_name)
+                            
+                            # Remove any digit remnants at the end
+                            course_name = re.sub(r'\d+
+    
+    def process_pdf(self, pdf_path, text=None):
+        """
+        Process a PDF transcript and extract all data.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            text: Optional pre-extracted text (used instead of extracting from PDF)
+            
+        Returns:
+            Tuple of (student_info, semesters, extracted_text)
+        """
+        # Use provided text or extract from PDF
+        if text is not None:
+            extracted_text = text
+        else:
+            extracted_text = self.extract_text_from_pdf(pdf_path)
+        
+        if not extracted_text:
+            logger.error("No text extracted from PDF")
+            return {}, [], ""
+        
+        # Extract student info
+        student_info = self.extract_student_info(extracted_text)
+        
+        # Extract semesters
+        semesters = self.extract_semesters(extracted_text)
+        
+        return student_info, semesters, extracted_text
+, '', course_name)
+                            
                             course_name = course_name.strip()
                             
-                            # Validate grade format
+                            # Validate grade
                             valid_grades = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F', 'W', 'N', 'P', 'I', 'S', 'U']
                             if grade not in valid_grades:
                                 continue
@@ -203,8 +353,8 @@ class PDFExtractor:
                             # Parse credits
                             credits = int(credits_str) if credits_str.isdigit() else 0
                             
-                            # Validate we haven't seen this exact course code already
-                            if any(c['code'] == course_code for c in current_semester['courses']):
+                            # Validate course name is not empty or too short
+                            if len(course_name) < 3:
                                 continue
                             
                             course_data = {
@@ -215,6 +365,7 @@ class PDFExtractor:
                             }
                             
                             current_semester["courses"].append(course_data)
+                            seen_codes.add(course_code)
                             
                             # Count credits
                             if grade not in ['W', 'N', '']:
@@ -226,10 +377,10 @@ class PDFExtractor:
                         except (IndexError, ValueError) as e:
                             continue
                 
-                # If no pattern matched but line has course code, log it for debugging
+                # Debug: Log unmatched lines (optional)
                 if not course_matched and re.search(r'\d{8}', line):
-                    # DEBUG: Uncomment to see what's not matching
-                    # print(f"UNMATCHED LINE WITH COURSE CODE: {line}")
+                    # Uncomment for debugging:
+                    # logger.debug(f"UNMATCHED: {line}")
                     pass
             
             # Only add semester if it has courses
