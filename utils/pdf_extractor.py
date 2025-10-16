@@ -91,7 +91,7 @@ class PDFExtractor:
             }
     
     
-def extract_semesters(self, text):
+    def extract_semesters(self, text):
         """
         ULTRA-ROBUST VERSION: Extract semester data with maximum flexibility.
         Handles various PDF extraction quirks and spacing issues.
