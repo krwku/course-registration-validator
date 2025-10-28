@@ -1142,7 +1142,7 @@ class FlowChartGenerator:
                 """
                 components.html(auto_popup_js, height=0)
                 
-                st.success("✅ Flow chart opened in new window")
+                st.success("Flow chart opened in new window")
                 if flow_unidentified > 0:
                     st.info(f"Note: {flow_unidentified} courses require classification")
                 
