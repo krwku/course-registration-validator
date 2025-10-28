@@ -20,16 +20,51 @@ class UIComponents:
             st.header("⚙️ Configuration")
             
             if available_course_data:
+                # Auto-selection option
+                auto_select = st.checkbox(
+                    "🤖 Auto-select curriculum based on Student ID",
+                    value=True,
+                    help="Automatically choose curriculum based on student ID from uploaded transcript"
+                )
+                
+                # Get student info if available
+                student_info = getattr(st.session_state, 'student_info', {})
+                student_id = student_info.get('id', '')
+                
+                # Determine default selection
+                if auto_select and student_id:
+                    from utils.curriculum_selector import get_curriculum_for_student_id
+                    auto_selected = get_curriculum_for_student_id(student_id)
+                    if auto_selected in available_course_data:
+                        default_index = list(available_course_data.keys()).index(auto_selected)
+                        st.info(f"🎯 Auto-selected {auto_selected} for Student ID: {student_id[:2]}XXXXXXXX")
+                    else:
+                        default_index = 0
+                        st.warning(f"⚠️ Auto-selected curriculum {auto_selected} not found, using default")
+                else:
+                    # Default to newest (last in sorted list)
+                    default_index = len(available_course_data) - 1
+                
                 selected_catalog = st.selectbox(
                     "📚 Select Course Catalog",
                     options=list(available_course_data.keys()),
-                    help="Choose the course catalog for validation"
+                    index=default_index,
+                    help="Choose the course catalog for validation",
+                    disabled=auto_select and bool(student_id)  # Disable if auto-selecting with valid student ID
                 )
                 
                 if selected_catalog:
                     selected_course_data = available_course_data[selected_catalog]
                     st.session_state.selected_course_data = selected_course_data
                     st.success(f"✅ Using: {selected_course_data['filename']}")
+                    
+                    # Add re-validation button if there are processed results
+                    if hasattr(st.session_state, 'processing_complete') and st.session_state.processing_complete:
+                        if st.button("🔄 Re-validate with this curriculum", help="Re-run validation with the selected curriculum"):
+                            # Clear the validation curriculum to force re-validation
+                            if 'last_validation_curriculum' in st.session_state:
+                                del st.session_state.last_validation_curriculum
+                            st.rerun()
                     
                     # Load course categories for classification
                     if st.session_state.course_categories is None:

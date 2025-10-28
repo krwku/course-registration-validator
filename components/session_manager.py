@@ -81,6 +81,9 @@ class SessionManager:
         st.session_state.semesters = []
         st.session_state.validation_results = []
         st.session_state.unidentified_count = 0
+        # Reset curriculum validation tracking
+        if 'last_validation_curriculum' in st.session_state:
+            del st.session_state.last_validation_curriculum
     
     @staticmethod
     def should_reset_for_new_file(pdf_name: str) -> bool:
