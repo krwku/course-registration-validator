@@ -1,0 +1,12 @@
+{
+  "technical_elective_prefixes": [
+    "01206"
+  ],
+  "description": "Configuration for technical elective course prefixes",
+  "instructions": "Add course prefixes to the 'technical_elective_prefixes' array to classify courses with those prefixes as technical electives instead of free electives",
+  "examples": [
+    "01206 - Industrial Engineering courses",
+    "01204 - Computer Engineering courses (example)",
+    "01999 - Special topics courses (example)"
+  ]
+}
