@@ -130,8 +130,6 @@ class FlowChartGenerator:
                 st.error(f"No curriculum templates found")
         
         return None
-        st.error("No curriculum templates found!")
-        return None
 
     def classify_course_for_flow(self, course_code, course_name="", course_categories=None):
         """
