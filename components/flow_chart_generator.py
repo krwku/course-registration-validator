@@ -70,10 +70,12 @@ class FlowChartGenerator:
                     # Get course details
                     course_name = "Unknown Course"
                     credits = 0
+                    prerequisites = []
                     
                     if course_code in course_categories["all_courses"]:
                         course_info = course_categories["all_courses"][course_code]
                         course_name = course_info.get("name", "Unknown Course")
+                        prerequisites = course_info.get("prerequisites", [])
                         credits_str = course_info.get("credits", "0")
                         if isinstance(credits_str, str) and "(" in credits_str:
                             credits = int(credits_str.split("(")[0])
@@ -83,6 +85,19 @@ class FlowChartGenerator:
                     # Determine status
                     css_class = "course-box"
                     status_info = "Not taken"
+                    deviation_info = ""
+                    
+                    # Check for deviations
+                    deviation = next((d for d in analysis['deviations'] if d['course_code'] == course_code), None)
+                    if deviation:
+                        css_class += f" course-deviation {deviation['severity']}"
+                        severity_text = {
+                            'low': 'Minor timing variation (within ±1-2 years, very normal)',
+                            'moderate': 'Moderate schedule variation (±2 years)', 
+                            'high': 'Significant timing difference (>2 years from expected)'
+                        }.get(deviation['severity'], 'Schedule variation')
+                        
+                        deviation_info = f'<div class="deviation-tooltip">{severity_text}<br>Expected: {deviation["expected"]}<br>Actually taken: {deviation["actual"]}</div>'
                     
                     if course_code in analysis['completed_courses']:
                         css_class += " course-completed"
@@ -99,18 +114,76 @@ class FlowChartGenerator:
                         grade = analysis['current_courses'][course_code]['grade']
                         status_info = f"Current: {grade if grade else 'In Progress'}"
                     
+                    # Create prerequisite information
+                    prereq_list = prerequisites if prerequisites else []
+                    
+                    # Find courses that need this course as prerequisite
+                    next_courses = []
+                    for check_code, check_info in course_categories["all_courses"].items():
+                        if course_code in check_info.get("prerequisites", []):
+                            next_courses.append(check_code)
+                    
+                    # Create tooltip content
+                    tooltip_content = ""
+                    has_relationships = bool(prereq_list or next_courses)
+                    
+                    if has_relationships:
+                        css_class += " has-relationships"
+                        
+                        tooltip_parts = []
+                        if prereq_list:
+                            tooltip_parts.append(f"🔶 Prerequisites: {', '.join(prereq_list)}")
+                        else:
+                            tooltip_parts.append("🔶 No prerequisites")
+                        
+                        if next_courses:
+                            if len(next_courses) <= 3:
+                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses)}")
+                            else:
+                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses[:3])} (+{len(next_courses)-3} more)")
+                        
+                        tooltip_content = f'''
+                        <div class="course-tooltip">
+                            {' <br> '.join(tooltip_parts)}
+                        </div>
+                        '''
+                    
                     courses_html += self.html_generator.generate_course_box(
-                        course_code, course_name, credits, css_class, status_info
+                        course_code, course_name, credits, css_class, status_info, deviation_info, tooltip_content
                     )
                 
                 semesters_html += self.html_generator.generate_semester_section(semester_name, courses_html)
             
             curriculum_grid_html += self.html_generator.generate_year_section(year_num, semesters_html)
         
-        # Generate complete HTML
-        complete_html = self.html_generator.generate_complete_html(
-            student_info, template, curriculum_grid_html
-        )
+        # Generate electives section
+        electives_html = self.html_generator.generate_electives_section(template, analysis)
+        
+        # Generate complete HTML with electives
+        css_styles = self.html_generator.generate_css_styles()
+        header_html = self.html_generator.generate_header_section(student_info, template)
+        legend_html = self.html_generator.generate_legend_section()
+        
+        complete_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Template-Based IE Curriculum Flow Chart</title>
+            <meta charset="utf-8">
+            {css_styles}
+        </head>
+        <body>
+            <div class="curriculum-container">
+                {header_html}
+                {legend_html}
+                <div class="year-container">
+                    {curriculum_grid_html}
+                </div>
+                {electives_html}
+            </div>
+        </body>
+        </html>
+        """
         
         return complete_html, 0
     
@@ -130,23 +203,33 @@ class FlowChartGenerator:
             st.markdown("Interactive curriculum template with progress tracking")
             
             if flow_html and len(flow_html.strip()) > 0:
-                col1, col2 = st.columns([3, 1])
+                # Auto popup - opens immediately when page loads
+                auto_popup_js = f"""
+                <script>
+                setTimeout(function() {{
+                    const flowWindow = window.open('', 'flowchart', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+                    if (flowWindow) {{
+                        flowWindow.document.write(`{flow_html.replace('`', '\\`')}`);
+                        flowWindow.document.close();
+                        flowWindow.focus();
+                    }}
+                }}, 500);
+                </script>
+                """
+                components.html(auto_popup_js, height=0)
                 
-                with col1:
-                    if flow_unidentified > 0:
-                        st.info(f"Note: {flow_unidentified} courses require classification")
+                st.success("Flow chart opened in new window")
+                if flow_unidentified > 0:
+                    st.info(f"Note: {flow_unidentified} courses require classification")
                 
-                with col2:
-                    st.download_button(
-                        label="Download Flow Chart",
-                        data=flow_html.encode('utf-8'),
-                        file_name=f"curriculum_flow_{student_info.get('id', 'student')}.html",
-                        mime="text/html",
-                        type="primary",
-                        help="Download interactive flow chart"
-                    )
-                
-                st.success("Flow chart ready for download")
+                # Backup button in case popup was blocked
+                st.download_button(
+                    label="Re-open Flow Chart (if popup blocked)",
+                    data=flow_html.encode('utf-8'),
+                    file_name=f"curriculum_flow_{student_info.get('id', 'student')}.html",
+                    mime="text/html",
+                    help="Backup option if popup was blocked by browser"
+                )
                 
             else:
                 st.error("Unable to generate flow chart")
