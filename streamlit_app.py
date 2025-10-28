@@ -324,11 +324,15 @@ def _display_results(session_manager, selected_course_data):
     # Initialize course analyzer
     course_analyzer = CourseAnalyzer()
     
-    # Analyze courses and display summary
-    course_analyzer.analyze_and_display_courses(semesters)
-    
-    # Generate and display visualizations
+    # Load curriculum template for proper classification
     flow_generator = FlowChartGenerator()
+    curriculum_name = selected_course_data.get('curriculum_folder', 'B-IE-2565') if selected_course_data else 'B-IE-2565'
+    template = flow_generator.load_curriculum_template_for_flow(curriculum_name)
+    
+    # Analyze courses and display summary with template context
+    course_analyzer.analyze_and_display_courses(semesters, template)
+    
+    # Generate and display visualizations (reuse the flow_generator)
     flow_generator.generate_and_display_flow_chart(
         student_info, semesters, validation_results, selected_course_data
     )
