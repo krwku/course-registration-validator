@@ -224,56 +224,7 @@ class FlowChartHTMLGenerator:
                 border-color: transparent transparent #e67e22 transparent;
             }
             
-            .course-tooltip {
-                display: none;
-                position: absolute;
-                top: -80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #2c3e50, #34495e);
-                color: white;
-                padding: 12px 16px;
-                border-radius: 8px;
-                font-size: 12px;
-                z-index: 1001;
-                max-width: 350px;
-                white-space: nowrap;
-                text-align: center;
-                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-                border: 2px solid #3498db;
-            }
-            
-            .course-tooltip::after {
-                content: '';
-                position: absolute;
-                top: 100%;
-                left: 50%;
-                margin-left: -5px;
-                border-width: 5px;
-                border-style: solid;
-                border-color: #2c3e50 transparent transparent transparent;
-            }
-            
-            .course-box:hover .course-tooltip {
-                display: block;
-            }
-            
-            .course-box.has-relationships::after {
-                content: "i";
-                position: absolute;
-                top: 2px;
-                right: 2px;
-                font-size: 10px;
-                opacity: 0.6;
-                background: #3498db;
-                color: white;
-                border-radius: 50%;
-                width: 12px;
-                height: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+
             
             .electives-section {
                 margin-top: 30px;
@@ -386,7 +337,6 @@ class FlowChartHTMLGenerator:
         return f"""
         <div class="{css_class}">
             {deviation_info}
-            {tooltip_content}
             <div class="course-code">{course_code}</div>
             <div class="course-name">{course_name}</div>
             <div class="course-info">{credits} credits - {status_info}</div>

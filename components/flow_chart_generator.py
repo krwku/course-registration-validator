@@ -114,42 +114,8 @@ class FlowChartGenerator:
                         grade = analysis['current_courses'][course_code]['grade']
                         status_info = f"Current: {grade if grade else 'In Progress'}"
                     
-                    # Create prerequisite information
-                    prereq_list = prerequisites if prerequisites else []
-                    
-                    # Find courses that need this course as prerequisite
-                    next_courses = []
-                    for check_code, check_info in course_categories["all_courses"].items():
-                        if course_code in check_info.get("prerequisites", []):
-                            next_courses.append(check_code)
-                    
-                    # Create tooltip content
-                    tooltip_content = ""
-                    has_relationships = bool(prereq_list or next_courses)
-                    
-                    if has_relationships:
-                        css_class += " has-relationships"
-                        
-                        tooltip_parts = []
-                        if prereq_list:
-                            tooltip_parts.append(f"Prerequisites: {', '.join(prereq_list)}")
-                        else:
-                            tooltip_parts.append("No prerequisites")
-                        
-                        if next_courses:
-                            if len(next_courses) <= 3:
-                                tooltip_parts.append(f"Unlocks: {', '.join(next_courses)}")
-                            else:
-                                tooltip_parts.append(f"Unlocks: {', '.join(next_courses[:3])} (+{len(next_courses)-3} more)")
-                        
-                        tooltip_content = f'''
-                        <div class="course-tooltip">
-                            {' <br> '.join(tooltip_parts)}
-                        </div>
-                        '''
-                    
                     courses_html += self.html_generator.generate_course_box(
-                        course_code, course_name, credits, css_class, status_info, deviation_info, tooltip_content
+                        course_code, course_name, credits, css_class, status_info, deviation_info, ""
                     )
                 
                 semesters_html += self.html_generator.generate_semester_section(semester_name, courses_html)
