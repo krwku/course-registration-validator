@@ -88,46 +88,45 @@ class FlowChartGenerator:
         return categories
 
     def load_curriculum_template_for_flow(self, catalog_name):
-        """Load curriculum template based on catalog name - FUTURE-PROOF VERSION."""
+        """Load curriculum template from new folder structure."""
         course_data_dir = Path(__file__).parent.parent / "course_data"
-        templates_dir = course_data_dir / "templates"
         
-        # Extract year from catalog name (e.g., "B-IE-2565" -> "2565")
-        year_match = re.search(r'(\d{4})', catalog_name)
-        if year_match:
-            year = year_match.group(1)
-            template_file = templates_dir / f"curriculum_template_{year}.json"
-            
-            # If specific template exists, use it
-            if template_file.exists():
-                try:
-                    with open(template_file, 'r', encoding='utf-8') as f:
-                        return json.load(f)
-                except Exception as e:
-                    st.error(f"Error loading template {template_file}: {e}")
-            else:
-                st.warning(f"Template for {year} not found: {template_file}")
+        # Extract curriculum name from catalog_name
+        # Handle both "B-IE-2565.json" and "B-IE-2565" formats
+        curriculum_name = catalog_name.replace('.json', '') if catalog_name.endswith('.json') else catalog_name
         
-        # Fallback: Find the most recent available template
-        available_templates = []
-        if templates_dir.exists():
-            for template_file in templates_dir.glob("curriculum_template_*.json"):
-                template_year_match = re.search(r'curriculum_template_(\d{4})\.json', template_file.name)
-                if template_year_match:
-                    template_year = int(template_year_match.group(1))
-                    available_templates.append((template_year, template_file))
+        # If it's a curriculum folder path, extract just the curriculum name
+        if '/' in curriculum_name:
+            curriculum_name = curriculum_name.split('/')[0]
         
-        if available_templates:
-            available_templates.sort(key=lambda x: x[0], reverse=True)
-            newest_year, newest_template = available_templates[0]
-            
-            st.info(f"Using fallback template: {newest_template.name}")
+        curriculum_dir = course_data_dir / curriculum_name
+        template_file = curriculum_dir / "template.json"
+        
+        if template_file.exists():
             try:
-                with open(newest_template, 'r', encoding='utf-8') as f:
+                with open(template_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                st.error(f"Error loading fallback template: {e}")
+                st.error(f"Error loading template {template_file}: {e}")
+        else:
+            # Fallback: try to find any available template
+            import sys
+            sys.path.append(str(Path(__file__).parent.parent))
+            from utils.curriculum_selector import get_newest_curriculum
+            fallback_curriculum = get_newest_curriculum()
+            fallback_template = course_data_dir / fallback_curriculum / "template.json"
+            
+            if fallback_template.exists():
+                st.warning(f"Template for {curriculum_name} not found, using {fallback_curriculum}")
+                try:
+                    with open(fallback_template, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except Exception as e:
+                    st.error(f"Error loading fallback template: {e}")
+            else:
+                st.error(f"No curriculum templates found")
         
+        return None
         st.error("No curriculum templates found!")
         return None
 
@@ -342,8 +341,8 @@ class FlowChartGenerator:
         course_categories = self.load_course_categories_for_flow()
         
         # Load curriculum template
-        catalog_filename = selected_course_data.get('filename', 'B-IE-2565.json') if selected_course_data else 'B-IE-2565.json'
-        template = self.load_curriculum_template_for_flow(catalog_filename)
+        curriculum_name = selected_course_data.get('curriculum_folder', 'B-IE-2565') if selected_course_data else 'B-IE-2565'
+        template = self.load_curriculum_template_for_flow(curriculum_name)
         
         if not template:
             return "Error: Could not load curriculum template", 1
