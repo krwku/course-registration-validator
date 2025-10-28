@@ -1,118 +1,102 @@
 import json
 from pathlib import Path
+from .curriculum_selector import get_curriculum_for_student_id, get_available_curricula
 
 def load_comprehensive_course_data():
     """
-    Load all course data including Gen-Ed and Technical Electives with improved error handling.
-    FIXED: Now properly handles technical_electives attribute from B-IE files.
+    Load all course data from new folder structure.
     """
     course_data_dir = Path(__file__).parent.parent / "course_data"
-    
-    # Try to load from existing files
     available_files = {}
     
     if course_data_dir.exists():
-        # Files to permanently exclude from the dropdown (support files)
-        excluded_files = {
-            "gen_ed_courses.json",
-            "ie_core_courses.json", 
-            # REMOVED: "technical_electives.json" - no longer used
-        }
+        # Get available curricula from folder structure (newest first for UI)
+        curricula = get_available_curricula()
+        curricula.sort(reverse=True)  # Sort newest first for UI display
         
-        # Scan for all JSON files and categorize them
-        curriculum_files = []
-        other_files = []
-        
-        for json_file in course_data_dir.glob("*.json"):
-            # Skip excluded support files
-            if json_file.name in excluded_files:
-                continue
+        # Process each curriculum folder
+        for curriculum in curricula:
+            curriculum_dir = course_data_dir / curriculum
+            courses_file = curriculum_dir / "courses.json"
             
-            # Check if it's a B-IE curriculum file
-            if json_file.name.startswith("B-IE-") and json_file.name.endswith(".json"):
-                curriculum_files.append(json_file)
-            else:
-                other_files.append(json_file)
-        
-        # Sort curriculum files by year (newest first)
-        def extract_year(filename):
-            """Extract year from B-IE-XXXX.json format"""
-            try:
-                # Extract the 4-digit year from B-IE-XXXX.json
-                stem = filename.stem  # Gets "B-IE-XXXX"
-                year_part = stem.split("-")[-1]  # Gets "XXXX"
-                return int(year_part) if year_part.isdigit() else 0
-            except:
-                return 0
-        
-        curriculum_files.sort(key=extract_year, reverse=True)
-        
-        # Process curriculum files (B-IE-XXXX.json)
-        for json_file in curriculum_files:
-            try:
-                with open(json_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # Validate that the file contains course data
-                has_courses = (
-                    'industrial_engineering_courses' in data or
-                    'gen_ed_courses' in data or
-                    # REMOVED: 'technical_electives' in data or
-                    'other_related_courses' in data
-                )
-                
-                if has_courses:
-                    # Create clean display name: B-IE-2565.json -> B-IE-2565
-                    display_name = json_file.stem
+            if courses_file.exists():
+                try:
+                    with open(courses_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
                     
-                    available_files[display_name] = {
-                        'data': data,
-                        'filename': json_file.name,
-                        'path': str(json_file)
-                    }
-            except Exception as e:
-                print(f"Error loading {json_file.name}: {e}")
-                continue
-        
-        # Process other valid JSON files (non-curriculum files)
-        for json_file in other_files:
-            try:
-                with open(json_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # Validate that the file contains course data
-                has_courses = (
-                    'industrial_engineering_courses' in data or
-                    'gen_ed_courses' in data or
-                    # REMOVED: 'technical_electives' in data or
-                    'other_related_courses' in data
-                )
-                
-                if has_courses:
-                    # Create a clean display name for other files
-                    file_name = json_file.stem
-                    display_name = file_name.replace("_", "-").replace("-courses", "").upper()
+                    # Validate that the file contains course data
+                    has_courses = (
+                        'industrial_engineering_courses' in data or
+                        'gen_ed_courses' in data or
+                        'other_related_courses' in data
+                    )
                     
-                    # Limit length for readability
-                    if len(display_name) > 20:
-                        display_name = display_name[:17] + "..."
-                    
-                    # Ensure uniqueness
-                    original_display_name = display_name
-                    counter = 1
-                    while display_name in available_files:
-                        display_name = f"{original_display_name}-{counter}"
-                        counter += 1
-                    
-                    available_files[display_name] = {
-                        'data': data,
-                        'filename': json_file.name,
-                        'path': str(json_file)
-                    }
-            except Exception as e:
-                print(f"Error loading {json_file.name}: {e}")
+                    if has_courses:
+                        available_files[curriculum] = {
+                            'data': data,
+                            'filename': f"{curriculum}/courses.json",
+                            'path': str(courses_file),
+                            'curriculum_folder': curriculum
+                        }
+                except Exception as e:
+                    print(f"Error loading {courses_file}: {e}")
+                    continue
     
     return available_files
+
+def load_curriculum_data(curriculum_name: str = None, student_id: str = None):
+    """
+    Load curriculum data with auto-selection based on student ID.
+    
+    Args:
+        curriculum_name: Specific curriculum to load (e.g., "B-IE-2565")
+        student_id: Student ID for auto-selection (e.g., "6512345678")
+    
+    Returns:
+        Dictionary with curriculum data and template
+    """
+    course_data_dir = Path(__file__).parent.parent / "course_data"
+    
+    # Determine which curriculum to use
+    if curriculum_name:
+        selected_curriculum = curriculum_name
+    elif student_id:
+        selected_curriculum = get_curriculum_for_student_id(student_id)
+    else:
+        selected_curriculum = get_curriculum_for_student_id("")  # Gets newest
+    
+    curriculum_dir = course_data_dir / selected_curriculum
+    courses_file = curriculum_dir / "courses.json"
+    template_file = curriculum_dir / "template.json"
+    
+    result = {
+        'curriculum_name': selected_curriculum,
+        'courses': None,
+        'template': None,
+        'error': None
+    }
+    
+    # Load courses
+    if courses_file.exists():
+        try:
+            with open(courses_file, 'r', encoding='utf-8') as f:
+                result['courses'] = json.load(f)
+        except Exception as e:
+            result['error'] = f"Error loading courses: {e}"
+    else:
+        result['error'] = f"Courses file not found: {courses_file}"
+    
+    # Load template
+    if template_file.exists():
+        try:
+            with open(template_file, 'r', encoding='utf-8') as f:
+                result['template'] = json.load(f)
+        except Exception as e:
+            result['error'] = f"Error loading template: {e}"
+    else:
+        result['error'] = f"Template file not found: {template_file}"
+    
+    return result
 
 def validate_course_data_structure(data):
     """
