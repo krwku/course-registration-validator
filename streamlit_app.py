@@ -220,10 +220,16 @@ def _process_pdf_file(pdf_file, selected_course_data, session_manager):
             # Validate courses
             validation_results = _validate_courses(semesters, selected_course_data)
             
+            # Track which curriculum was used for validation
+            st.session_state.last_validation_curriculum = selected_course_data.get('curriculum_folder', selected_course_data.get('filename', ''))
+            
             # Store results in session
             session_manager.store_processing_results(
                 student_info, semesters, validation_results, pdf_file.name
             )
+            
+            # Trigger rerun to refresh curriculum selection based on student ID
+            st.rerun()
             
         except Exception as e:
             st.error(f"❌ Error during processing: {e}")
@@ -291,7 +297,24 @@ def _display_results(session_manager, selected_course_data):
     """Display processing results."""
     student_info = session_manager.get_student_info()
     semesters = session_manager.get_semesters()
-    validation_results = session_manager.get_validation_results()
+    
+    # Check if we need to re-validate due to curriculum change
+    cached_curriculum = getattr(st.session_state, 'last_validation_curriculum', None)
+    current_curriculum = selected_course_data.get('curriculum_folder', selected_course_data.get('filename', ''))
+    
+    if cached_curriculum != current_curriculum:
+        # Re-validate with new curriculum
+        st.info(f"🔄 Re-validating courses with {current_curriculum}...")
+        validation_results = _validate_courses(semesters, selected_course_data)
+        
+        # Update session state with new validation results
+        st.session_state.validation_results = validation_results
+        st.session_state.last_validation_curriculum = current_curriculum
+        
+        st.success(f"✅ Validation updated for {current_curriculum}")
+    else:
+        # Use cached validation results
+        validation_results = session_manager.get_validation_results()
     
     # Display student info and validation results
     UIComponents.display_student_info_and_validation(
