@@ -71,9 +71,9 @@ class ReportGenerator:
         
         col_dl1, col_dl2, col_dl3, col_dl4 = st.columns(4)
         
-        # Excel Report
+        # Comprehensive Report
         with col_dl1:
-            self._handle_excel_download(student_info, semesters, validation_results)
+            self._handle_comprehensive_report_download(student_info, semesters, validation_results, selected_course_data)
         
         # HTML Flow Chart
         with col_dl2:
@@ -87,32 +87,32 @@ class ReportGenerator:
         with col_dl4:
             self._handle_json_export_download(student_info, semesters, validation_results, selected_course_data)
     
-    def _handle_excel_download(self, student_info: Dict, semesters: List[Dict], 
-                              validation_results: List[Dict]):
-        """Handle Excel report download."""
+    def _handle_comprehensive_report_download(self, student_info: Dict, semesters: List[Dict], 
+                                            validation_results: List[Dict], selected_course_data: Dict):
+        """Handle comprehensive HTML report download."""
         try:
-            with st.spinner("Creating smart Excel analysis..."):
-                excel_bytes, excel_unidentified = self.generate_excel_report(
-                    student_info, semesters, validation_results
+            with st.spinner("Generating comprehensive academic report..."):
+                from components.comprehensive_report_generator import ComprehensiveReportGenerator
+                report_generator = ComprehensiveReportGenerator()
+                report_html = report_generator.generate_comprehensive_report(
+                    student_info, semesters, validation_results, selected_course_data
                 )
             
-            if excel_bytes:
+            if report_html and len(report_html.strip()) > 0:
                 st.download_button(
-                    label="📋 Smart Excel Analysis",
-                    data=excel_bytes,
-                    file_name=f"KU_IE_smart_analysis_{student_info.get('id', 'unknown')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    help="Comprehensive course analysis with alerts and recommendations",
+                    label="📋 Comprehensive Report",
+                    data=report_html.encode('utf-8'),
+                    file_name=f"academic_report_{student_info.get('id', 'student')}.html",
+                    mime="text/html",
+                    help="Detailed academic progress analysis with recommendations and planning",
                     use_container_width=True
                 )
-                
-                if excel_unidentified > 0:
-                    st.warning(f"⚠️ {excel_unidentified} unidentified")
+                st.success("✅ Report ready for download")
             else:
-                st.error("❌ Excel generation failed")
+                st.error("❌ Report generation failed")
                 
         except Exception as e:
-            st.error(f"❌ Excel error: {str(e)[:50]}...")
+            st.error(f"❌ Report error: {str(e)[:50]}...")
             with st.expander("Debug"):
                 st.code(str(e))
     

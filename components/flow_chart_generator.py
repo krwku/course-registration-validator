@@ -32,14 +32,17 @@ class FlowChartGenerator:
             "all_courses": {}
         }
         
-        # FUTURE-PROOF: Find all B-IE files dynamically
+        # UPDATED: Find all B-IE folders and load courses.json from each
         ie_files = []
         if course_data_dir.exists():
-            for json_file in course_data_dir.glob("B-IE-*.json"):
-                year_match = re.search(r'B-IE-(\d{4})\.json', json_file.name)
-                if year_match:
-                    year = int(year_match.group(1))
-                    ie_files.append((year, json_file))
+            for folder in course_data_dir.glob("B-IE-*"):
+                if folder.is_dir():
+                    courses_file = folder / "courses.json"
+                    if courses_file.exists():
+                        year_match = re.search(r'B-IE-(\d{4})', folder.name)
+                        if year_match:
+                            year = int(year_match.group(1))
+                            ie_files.append((year, courses_file))
         
         # Sort by year (newest first) and process
         ie_files.sort(key=lambda x: x[0], reverse=True)
@@ -134,6 +137,8 @@ class FlowChartGenerator:
         """
         Classify course into appropriate category.
         PRIORITY ORDER: Gen-Ed → Technical Electives → IE Core → Free Electives
+        
+        ENHANCED: Now supports configurable technical elective prefixes
         """
         if course_categories is None:
             course_categories = self.load_course_categories_for_flow()
@@ -145,7 +150,7 @@ class FlowChartGenerator:
             if code in courses:
                 return ("gen_ed", subcategory, True)
         
-        # PRIORITY 2: Check Technical Electives
+        # PRIORITY 2: Check Technical Electives (from database)
         if code in course_categories["technical_electives"]:
             return ("technical_electives", "technical", True)
         
@@ -153,7 +158,14 @@ class FlowChartGenerator:
         if code in course_categories["ie_core"]:
             return ("ie_core", "core", True)
         
-        # PRIORITY 4: Everything else is free elective (not in our database)
+        # PRIORITY 4: Check Technical Electives by prefix (configurable)
+        technical_elective_prefixes = self._get_technical_elective_prefixes()
+        
+        for prefix in technical_elective_prefixes:
+            if code.startswith(prefix):
+                return ("technical_electives", "technical", False)  # False = not in database but classified by prefix
+        
+        # PRIORITY 5: Everything else is free elective (not in our database)
         return ("free_electives", "free", False)  # False = not identified in database
 
     def analyze_student_progress_enhanced(self, semesters, template, course_categories):
@@ -350,7 +362,7 @@ class FlowChartGenerator:
         # Use the FIXED analysis function
         analysis = self.analyze_student_progress_enhanced(semesters, template, course_categories)
         
-        # CSS styles with improved deviation indicators
+        # CSS styles with improved deviation indicators and prerequisite visualization
         css_styles = """
         <style>
             .curriculum-container {
@@ -359,7 +371,10 @@ class FlowChartGenerator:
                 margin: 0 auto;
                 padding: 20px;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                position: relative;
             }
+            
+
             
             .header {
                 text-align: center;
@@ -447,7 +462,88 @@ class FlowChartGenerator:
             .course-box:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                border-color: #3498db;
             }
+            
+
+            
+            /* Only show info icon on courses with relationships */
+            .course-box.has-relationships::after {
+                content: "ℹ️";
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                font-size: 10px;
+                opacity: 0.6;
+            }
+            
+            /* Enhanced hover effects for courses with relationships */
+            .course-box.has-relationships:hover {
+                border: 5px solid #3498db !important;
+                border-radius: 8px;
+                transform: scale(1.05);
+                box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+                z-index: 100;
+                position: relative;
+            }
+            
+            /* Different colors based on course status with enhanced effects */
+            .course-box.has-relationships.course-completed:hover {
+                border: 5px solid #27ae60 !important;
+                box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+            }
+            
+            .course-box.has-relationships.course-failed:hover {
+                border: 5px solid #e74c3c !important;
+                box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+            }
+            
+            .course-box.has-relationships.course-withdrawn:hover {
+                border: 5px solid #f39c12 !important;
+                box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+            }
+            
+            .course-box.has-relationships.course-current:hover {
+                border: 5px solid #9b59b6 !important;
+                box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
+            }
+            
+            /* Enhanced tooltip for better visibility */
+            .course-tooltip {
+                display: none;
+                position: absolute;
+                top: -80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #2c3e50, #34495e);
+                color: white;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 12px;
+                z-index: 1001;
+                max-width: 350px;
+                white-space: nowrap;
+                text-align: center;
+                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+                border: 2px solid #3498db;
+            }
+            
+            .course-tooltip::after {
+                content: '';
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                margin-left: -5px;
+                border-width: 5px;
+                border-style: solid;
+                border-color: #2c3e50 transparent transparent transparent;
+            }
+            
+            .course-box:hover .course-tooltip {
+                display: block;
+            }
+            
+
             
             .course-completed {
                 background: linear-gradient(135deg, #2ecc71, #27ae60);
@@ -513,18 +609,19 @@ class FlowChartGenerator:
             .deviation-tooltip {
                 display: none;
                 position: absolute;
-                top: -60px;
+                bottom: -70px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: #2c3e50;
+                background: #e67e22;
                 color: white;
                 padding: 8px 12px;
                 border-radius: 6px;
                 font-size: 11px;
-                z-index: 1000;
+                z-index: 999;
                 max-width: 300px;
                 white-space: normal;
                 text-align: center;
+                box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
             }
             
             .course-deviation:hover .deviation-tooltip {
@@ -534,12 +631,12 @@ class FlowChartGenerator:
             .deviation-tooltip::after {
                 content: '';
                 position: absolute;
-                top: 100%;
+                bottom: 100%;
                 left: 50%;
                 margin-left: -5px;
                 border-width: 5px;
                 border-style: solid;
-                border-color: #2c3e50 transparent transparent transparent;
+                border-color: transparent transparent #e67e22 transparent;
             }
             
             .course-code { font-size: 11px; font-weight: bold; margin-bottom: 4px; }
@@ -726,6 +823,14 @@ class FlowChartGenerator:
                 <span style="color: #e74c3c; font-weight: bold;">❌</span>
                 <span>Significant Variation (>2 years)</span>
             </div>
+            <div class="legend-item">
+                <span style="color: #3498db; font-weight: bold;">ℹ️</span>
+                <span>Courses with Prerequisites/Unlocks (Hover for Info)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="border: 4px solid #3498db; background: white; width: 12px; height: 12px;"></div>
+                <span>Thick Border on Hover</span>
+            </div>
         </div>
         """
         
@@ -757,10 +862,12 @@ class FlowChartGenerator:
                     # Get course details
                     course_name = "Unknown Course"
                     credits = 0
+                    prerequisites = []
                     
                     if course_code in course_categories["all_courses"]:
                         course_info = course_categories["all_courses"][course_code]
                         course_name = course_info.get("name", "Unknown Course")
+                        prerequisites = course_info.get("prerequisites", [])
                         credits_str = course_info.get("credits", "0")
                         if isinstance(credits_str, str) and "(" in credits_str:
                             credits = int(credits_str.split("(")[0])
@@ -799,9 +906,47 @@ class FlowChartGenerator:
                         grade = analysis['current_courses'][course_code]['grade']
                         status_info = f"Current: {grade if grade else 'In Progress'}"
                     
+                    # Create prerequisite information
+                    prereq_list = []
+                    if prerequisites:
+                        prereq_list = prerequisites
+                    
+                    # Find courses that need this course as prerequisite
+                    next_courses = []
+                    for check_code, check_info in course_categories["all_courses"].items():
+                        if course_code in check_info.get("prerequisites", []):
+                            next_courses.append(check_code)
+                    
+                    # Create tooltip content and special CSS class only if there are prerequisites or unlocks
+                    tooltip_content = ""
+                    has_relationships = bool(prereq_list or next_courses)
+                    
+                    if has_relationships:
+                        # Add special class for courses with relationships
+                        css_class += " has-relationships"
+                        
+                        tooltip_parts = []
+                        if prereq_list:
+                            tooltip_parts.append(f"🔶 Prerequisites: {', '.join(prereq_list)}")
+                        else:
+                            tooltip_parts.append("🔶 No prerequisites")
+                        
+                        if next_courses:
+                            if len(next_courses) <= 3:
+                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses)}")
+                            else:
+                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses[:3])} (+{len(next_courses)-3} more)")
+                        
+                        tooltip_content = f'''
+                        <div class="course-tooltip">
+                            {' <br> '.join(tooltip_parts)}
+                        </div>
+                        '''
+                    
                     html_content += f'''
                     <div class="{css_class}">
                         {deviation_info}
+                        {tooltip_content}
                         <div class="course-code">{course_code}</div>
                         <div class="course-name">{course_name}</div>
                         <div class="course-info">{credits} credits • {status_info}</div>
@@ -821,7 +966,9 @@ class FlowChartGenerator:
             <div class="electives-grid">
         '''
         
-        unidentified_count = 0
+        # Use the corrected unidentified count from session state (calculated by CourseAnalyzer)
+        from components.session_manager import SessionManager
+        unidentified_count = SessionManager.get_unidentified_count()
         
         for elective_key, required_credits in template.get('elective_requirements', {}).items():
             analysis_data = analysis['elective_analysis'].get(elective_key, {'required': required_credits, 'completed': 0, 'courses': []})
@@ -861,9 +1008,6 @@ class FlowChartGenerator:
             
             if courses:
                 for course in courses:
-                    if not course.get('is_identified', True):
-                        unidentified_count += 1
-                    
                     html_content += f'''
                     <div class="course-box course-completed" style="margin-bottom: 5px;">
                         <div class="course-code">{course["code"]}</div>
@@ -928,66 +1072,91 @@ class FlowChartGenerator:
         
         return html_content, unidentified_count
     
+    def _generate_prerequisite_data(self, template, course_categories):
+        """Generate prerequisite relationship data for JavaScript visualization."""
+        prerequisite_data = {}
+        
+        # Get all courses from template
+        all_template_courses = set()
+        for year_data in template.get('core_curriculum', {}).values():
+            for course_codes in year_data.values():
+                all_template_courses.update(course_codes)
+        
+        # Build prerequisite data for each course
+        for course_code in all_template_courses:
+            course_info = course_categories["all_courses"].get(course_code, {})
+            prerequisites = course_info.get("prerequisites", [])
+            
+            prerequisite_data[course_code] = {
+                "name": course_info.get("name", "Unknown Course"),
+                "prerequisites": prerequisites,
+                "credits": course_info.get("credits", "0")
+            }
+        
+        return prerequisite_data
+    
+    def _get_technical_elective_prefixes(self):
+        """
+        Get configurable technical elective prefixes.
+        Loads from configuration file with fallback to defaults.
+        """
+        try:
+            config_file = Path(__file__).parent.parent / "course_data" / "technical_elective_config.json"
+            if config_file.exists():
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    return config.get("technical_elective_prefixes", ["01206"])
+        except Exception as e:
+            print(f"Warning: Could not load technical elective config: {e}")
+        
+        # Fallback to default prefixes
+        return ["01206"]
     
     def generate_and_display_flow_chart(self, student_info: Dict, semesters: List[Dict], 
                                        validation_results: List[Dict], selected_course_data: Dict):
         """Generate and display the flow chart in Streamlit."""
         st.divider()
-        st.header("📊 Advanced Visualizations & Downloads - FIXED VERSION")
+        st.header("📊 Visualizations & Downloads")
         
         try:
-            with st.spinner("Generating FIXED template-based curriculum flow chart..."):
+            with st.spinner("Generating curriculum flow chart..."):
                 flow_html, flow_unidentified = self.create_enhanced_template_flow_html(
                     student_info, semesters, validation_results, selected_course_data
                 )
             
-            st.subheader("🗂️ Template-Based Curriculum Flow Chart")
-            st.markdown("*Shows ideal curriculum template with your actual progress and enhanced deviation analysis*")
+            st.subheader("Curriculum Flow Chart")
             
             if flow_html and len(flow_html.strip()) > 0:
-                # Escape the backticks in the HTML content for the f-string
-                escaped_flow_html = flow_html.replace('`', '\\`')
-                
-                # Automatically open flow chart in new window
-                js_code = f"""
+                # Auto popup - opens immediately when page loads
+                auto_popup_js = f"""
                 <script>
-                const flowHTML = `{escaped_flow_html}`;
-                const newWindow = window.open('', '_blank');
-                if (newWindow) {{
-                    newWindow.document.write(flowHTML);
-                    newWindow.document.close();
-                }}
+                setTimeout(function() {{
+                    const flowWindow = window.open('', 'flowchart', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+                    if (flowWindow) {{
+                        flowWindow.document.write(`{flow_html.replace('`', '\\`')}`);
+                        flowWindow.document.close();
+                        flowWindow.focus();
+                    }}
+                }}, 500);
                 </script>
                 """
-                components.html(js_code, height=0)
+                components.html(auto_popup_js, height=0)
                 
-                # Show success message and provide re-open option
-                col_flow1, col_flow2 = st.columns([2, 1])
+                st.success("✅ Flow chart opened in new window")
+                if flow_unidentified > 0:
+                    st.info(f"Note: {flow_unidentified} courses require classification")
                 
-                with col_flow1:
-                    st.success("✅ Flow chart automatically opened in new window!")
-                    st.info("🔧 **Enhanced:** Schedule deviations are now more lenient and realistic")
-                    if flow_unidentified > 0:
-                        st.warning(f"⚠️ {flow_unidentified} unidentified courses in flow chart")
-                
-                with col_flow2:
-                    # Re-open button for popup blocker cases
-                    if st.button("🔄 Re-open Flow Chart", help="Click if popup was blocked"):
-                        js_reopen = f"""
-                        <script>
-                        const flowHTML = `{escaped_flow_html}`;
-                        const newWindow = window.open('', '_blank');
-                        newWindow.document.write(flowHTML);
-                        newWindow.document.close();
-                        </script>
-                        """
-                        components.html(js_reopen, height=0)
-                        st.success("✅ Flow chart re-opened!")
-                
-                st.info("💡 **Note:** If the window didn't open automatically, use the 'Re-open' button (popup might be blocked by browser).")
+                # Backup button in case popup was blocked
+                st.download_button(
+                    label="Re-open Flow Chart (if popup blocked)",
+                    data=flow_html.encode('utf-8'),
+                    file_name=f"curriculum_flow_{student_info.get('id', 'student')}.html",
+                    mime="text/html",
+                    help="Backup option if popup was blocked by browser"
+                )
                 
             else:
-                st.error("❌ No HTML content generated for flow chart")
+                st.error("Unable to generate flow chart")
                 
         except Exception as e:
             st.error(f"Error generating flow chart: {e}")

@@ -93,6 +93,8 @@ class CourseAnalyzer:
         """
         Classify course into appropriate category.
         PRIORITY ORDER: Gen-Ed → Technical Electives → IE Core → Free Electives
+        
+        ENHANCED: Now supports configurable technical elective prefixes
         """
         if course_categories is None:
             if self.course_categories is None:
@@ -106,7 +108,7 @@ class CourseAnalyzer:
             if code in courses:
                 return ("gen_ed", subcategory, True)
         
-        # PRIORITY 2: Check Technical Electives
+        # PRIORITY 2: Check Technical Electives (from database)
         if code in course_categories["technical_electives"]:
             return ("technical_electives", "technical", True)
         
@@ -114,13 +116,37 @@ class CourseAnalyzer:
         if code in course_categories["ie_core"]:
             return ("ie_core", "core", True)
         
-        # PRIORITY 4: Everything else is free elective (not in our database)
+        # PRIORITY 4: Check Technical Electives by prefix (configurable)
+        technical_elective_prefixes = self._get_technical_elective_prefixes()
+        
+        for prefix in technical_elective_prefixes:
+            if code.startswith(prefix):
+                return ("technical_electives", "technical", False)  # False = not in database but classified by prefix
+        
+        # PRIORITY 5: Everything else is free elective (not in our database)
         return ("free_electives", "free", False)  # False = not identified in database
     
-    def analyze_unidentified_courses(self, semesters: List[Dict]) -> List[Dict]:
-        """Analyze transcript for unidentified courses."""
+    def analyze_unidentified_courses(self, semesters: List[Dict], template=None) -> List[Dict]:
+        """
+        Analyze transcript for truly unidentified courses.
+        
+        UPDATED LOGIC:
+        - Courses in template = mandatory courses (not unidentified)
+        - Courses with "01206" prefix not in template = technical electives (not unidentified)  
+        - Only other courses are truly unidentified
+        """
         if self.course_categories is None:
             self.course_categories = self.load_course_categories()
+        
+        # Get all courses from template if provided
+        template_courses = set()
+        if template:
+            for year_data in template.get('core_curriculum', {}).values():
+                for course_codes in year_data.values():
+                    template_courses.update(course_codes)
+        
+        # Get technical elective prefixes
+        technical_prefixes = self._get_technical_elective_prefixes()
         
         unidentified_courses = []
         
@@ -131,10 +157,22 @@ class CourseAnalyzer:
                     course_name = course.get("name", "")
                     
                     if course_code:
+                        # Check if course is in template (mandatory course)
+                        if course_code in template_courses:
+                            continue  # Not unidentified - it's a mandatory course
+                        
+                        # Check if course has technical elective prefix
+                        is_technical_by_prefix = any(course_code.upper().startswith(prefix) 
+                                                   for prefix in technical_prefixes)
+                        if is_technical_by_prefix:
+                            continue  # Not unidentified - it's a technical elective by prefix
+                        
+                        # Check if course is in our database
                         category, subcategory, is_identified = self.classify_course(
                             course_code, course_name, self.course_categories
                         )
                         
+                        # Only count as unidentified if not in database AND not covered by above rules
                         if not is_identified:
                             unidentified_courses.append({
                                 "code": course_code,
@@ -160,8 +198,11 @@ class CourseAnalyzer:
             summary = {
                 "ie_core": 0,
                 "wellness": 0,
+                "wellness_PE": 0,
                 "entrepreneurship": 0,
-                "language_communication": 0,
+                "language_communication_thai": 0,
+                "language_communication_foreigner": 0,
+                "language_communication_computer": 0,
                 "thai_citizen_global": 0,
                 "aesthetics": 0,
                 "technical_electives": 0,
@@ -185,7 +226,12 @@ class CourseAnalyzer:
                         if category == "ie_core":
                             summary["ie_core"] += credits
                         elif category == "gen_ed":
-                            summary[subcategory] += credits
+                            # Handle gen-ed subcategories safely
+                            if subcategory in summary:
+                                summary[subcategory] += credits
+                            else:
+                                # Fallback for unknown gen-ed subcategories
+                                summary["free_electives"] += credits
                         elif category == "technical_electives":
                             summary["technical_electives"] += credits
                         elif category == "unidentified":
@@ -198,7 +244,23 @@ class CourseAnalyzer:
             st.error(f"Error calculating credit summary: {e}")
             return {}
     
-    def analyze_and_display_courses(self, semesters: List[Dict]):
+    def _get_technical_elective_prefixes(self):
+        """
+        Get configurable technical elective prefixes.
+        Loads from configuration file with fallback to defaults.
+        """
+        try:
+            config_file = Path(__file__).parent.parent / "course_data" / "technical_elective_config.json"
+            if config_file.exists():
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    return config.get("technical_elective_prefixes", ["01206"])
+        except Exception as e:
+            print(f"Warning: Could not load technical elective config: {e}")
+        
+        # Fallback to default prefixes
+        return ["01206"]
+    def analyze_and_display_courses(self, semesters: List[Dict], template=None):
         """Analyze courses and display results."""
         session_manager = SessionManager()
         
@@ -207,8 +269,8 @@ class CourseAnalyzer:
             self.course_categories = self.load_course_categories()
             session_manager.set_course_categories(self.course_categories)
         
-        # Analyze unidentified courses
-        unidentified_courses = self.analyze_unidentified_courses(semesters)
+        # Analyze unidentified courses with template context
+        unidentified_courses = self.analyze_unidentified_courses(semesters, template)
         session_manager.set_unidentified_count(len(unidentified_courses))
         
         # Display unidentified courses info

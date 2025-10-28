@@ -9,20 +9,19 @@ class UIComponents:
     @staticmethod
     def display_header():
         """Display the main application header."""
-        st.title("🎓 KU Industrial Engineering Course Validator")
-        st.markdown("*Smart Registration Planning with Advanced Course Detection*")
-        st.markdown("*Created for Raphin P. - Enhanced Schedule Analysis*")
+        st.title("KU Industrial Engineering Course Validator")
+        st.markdown("Course validation and curriculum analysis system")
     
     @staticmethod
     def handle_sidebar_configuration(available_course_data: Dict) -> Optional[Dict]:
         """Handle sidebar configuration and return selected course data."""
         with st.sidebar:
-            st.header("⚙️ Configuration")
+            st.header("Configuration")
             
             if available_course_data:
                 # Auto-selection option
                 auto_select = st.checkbox(
-                    "🤖 Auto-select curriculum based on Student ID",
+                    "Auto-select curriculum based on Student ID",
                     value=True,
                     help="Automatically choose curriculum based on student ID from uploaded transcript"
                 )
@@ -37,7 +36,7 @@ class UIComponents:
                     auto_selected = get_curriculum_for_student_id(student_id)
                     if auto_selected in available_course_data:
                         default_index = list(available_course_data.keys()).index(auto_selected)
-                        st.info(f"🎯 Auto-selected {auto_selected} for Student ID: {student_id[:2]}XXXXXXXX")
+                        st.info(f"Auto-selected {auto_selected} for Student ID: {student_id[:2]}XXXXXXXX")
                     else:
                         default_index = 0
                         st.warning(f"⚠️ Auto-selected curriculum {auto_selected} not found, using default")
@@ -60,7 +59,7 @@ class UIComponents:
                     
                     # Add re-validation button if there are processed results
                     if hasattr(st.session_state, 'processing_complete') and st.session_state.processing_complete:
-                        if st.button("🔄 Re-validate with this curriculum", help="Re-run validation with the selected curriculum"):
+                        if st.button("Re-validate with this curriculum", help="Re-run validation with the selected curriculum"):
                             # Clear the validation curriculum to force re-validation
                             if 'last_validation_curriculum' in st.session_state:
                                 del st.session_state.last_validation_curriculum
@@ -143,24 +142,24 @@ class UIComponents:
     @staticmethod
     def display_welcome_screen():
         """Display welcome screen when no PDF is uploaded."""
-        st.info("📋 **Ready for advanced course validation and visualization with FIXED deviation detection!**")
+        st.info("Ready for course validation and curriculum analysis")
         
         col_info1, col_info2 = st.columns([1, 1])
         
         with col_info1:
-            st.markdown("### 🎯 How to use:")
+            st.markdown("### How to use:")
             st.markdown("""
             1. **Select course catalog** (IE 2560 or 2565)
             2. **Upload PDF transcript** in the sidebar
-            3. **Wait for processing** ⚡
-            4. **View interactive visualizations** 🗂️
-            5. **Download various report formats** 📋
+            3. **Wait for processing**
+            4. **View interactive visualizations**
+            5. **Download various report formats**
             """)
         
         with col_info2:
-            st.markdown("### 🚀 Key Features (FIXED):")
+            st.markdown("### Key Features:")
             st.markdown("• **Smart course detection** - Automatically categorizes courses")
-            st.markdown("• **FIXED deviation detection** - Realistic timing analysis")
+            st.markdown("• **Schedule analysis** - Realistic timing analysis")
             st.markdown("• **Interactive flow chart** - Visual semester progression")
             st.markdown("• **Comprehensive Excel analysis** - Detailed credit breakdowns")
             st.markdown("• **Prerequisite validation** - Checks course requirements")
@@ -190,14 +189,14 @@ class UIComponents:
                     st.success("✅ All validations passed")
         
         with col_status3:
-            st.markdown("*Be smart Folk, don't be a joke*", 
-                       help="Advanced course validation with enhanced deviation detection")
+            st.markdown("Course validation system", 
+                       help="Advanced course validation and curriculum analysis")
     
     @staticmethod
     def display_process_another_option():
         """Display option to process another PDF file."""
         st.divider()
-        if st.button("🔄 Process Another PDF", type="secondary"):
+        if st.button("Process Another PDF", type="secondary"):
             from components.session_manager import SessionManager
             SessionManager.reset_all_state()
             st.rerun()
@@ -215,11 +214,17 @@ class UIComponents:
         
         with col_cr1:
             st.metric("IE Core", f"{credit_summary.get('ie_core', 0)}", help="Required: ~110 credits")
-            st.metric("Wellness", f"{credit_summary.get('wellness', 0)}", help="Required: 7 credits")
+            # Combine wellness and wellness_PE
+            total_wellness = credit_summary.get('wellness', 0) + credit_summary.get('wellness_PE', 0)
+            st.metric("Wellness", f"{total_wellness}", help="Required: 7 credits")
             st.metric("Entrepreneurship", f"{credit_summary.get('entrepreneurship', 0)}", help="Required: 3 credits")
         
         with col_cr2:
-            st.metric("Language & Communication", f"{credit_summary.get('language_communication', 0)}", help="Required: 15 credits")
+            # Combine all language communication subcategories
+            total_lang_comm = (credit_summary.get('language_communication_thai', 0) + 
+                              credit_summary.get('language_communication_foreigner', 0) + 
+                              credit_summary.get('language_communication_computer', 0))
+            st.metric("Language & Communication", f"{total_lang_comm}", help="Required: 15 credits")
             st.metric("Thai Citizen & Global", f"{credit_summary.get('thai_citizen_global', 0)}", help="Required: 2 credits")
             st.metric("Aesthetics", f"{credit_summary.get('aesthetics', 0)}", help="Required: 3 credits")
         
