@@ -92,9 +92,9 @@ class FlowChartGenerator:
                     if deviation:
                         css_class += f" course-deviation {deviation['severity']}"
                         severity_text = {
-                            'low': 'Minor timing variation (within ±1-2 years, very normal)',
-                            'moderate': 'Moderate schedule variation (±2 years)', 
-                            'high': 'Significant timing difference (>2 years from expected)'
+                            'low': 'Minor timing variation (within 1-2 years, very normal)',
+                            'moderate': 'Moderate schedule variation (2 years)', 
+                            'high': 'Significant timing difference (more than 2 years from expected)'
                         }.get(deviation['severity'], 'Schedule variation')
                         
                         deviation_info = f'<div class="deviation-tooltip">{severity_text}<br>Expected: {deviation["expected"]}<br>Actually taken: {deviation["actual"]}</div>'
@@ -132,15 +132,15 @@ class FlowChartGenerator:
                         
                         tooltip_parts = []
                         if prereq_list:
-                            tooltip_parts.append(f"🔶 Prerequisites: {', '.join(prereq_list)}")
+                            tooltip_parts.append(f"Prerequisites: {', '.join(prereq_list)}")
                         else:
-                            tooltip_parts.append("🔶 No prerequisites")
+                            tooltip_parts.append("No prerequisites")
                         
                         if next_courses:
                             if len(next_courses) <= 3:
-                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses)}")
+                                tooltip_parts.append(f"Unlocks: {', '.join(next_courses)}")
                             else:
-                                tooltip_parts.append(f"🔷 Unlocks: {', '.join(next_courses[:3])} (+{len(next_courses)-3} more)")
+                                tooltip_parts.append(f"Unlocks: {', '.join(next_courses[:3])} (+{len(next_courses)-3} more)")
                         
                         tooltip_content = f'''
                         <div class="course-tooltip">

@@ -259,12 +259,20 @@ class FlowChartHTMLGenerator:
             }
             
             .course-box.has-relationships::after {
-                content: "ℹ️";
+                content: "i";
                 position: absolute;
                 top: 2px;
                 right: 2px;
                 font-size: 10px;
                 opacity: 0.6;
+                background: #3498db;
+                color: white;
+                border-radius: 50%;
+                width: 12px;
+                height: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .electives-section {
@@ -381,7 +389,7 @@ class FlowChartHTMLGenerator:
             {tooltip_content}
             <div class="course-code">{course_code}</div>
             <div class="course-name">{course_name}</div>
-            <div class="course-info">{credits} credits • {status_info}</div>
+            <div class="course-info">{credits} credits - {status_info}</div>
         </div>
         """
     
@@ -478,7 +486,7 @@ class FlowChartHTMLGenerator:
                     <div class="course-box course-completed" style="margin-bottom: 5px;">
                         <div class="course-code">{course["code"]}</div>
                         <div class="course-name">{course["name"]}</div>
-                        <div class="course-info">{course["credits"]} credits • {course["semester"]}</div>
+                        <div class="course-info">{course["credits"]} credits - {course["semester"]}</div>
                     </div>
                     """
             else:
